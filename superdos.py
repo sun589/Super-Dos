@@ -4,9 +4,9 @@ import random
 import requests
 import re
 import webbrowser
-from os import system
+import os
 #更改窗口名称
-system("title Super Dos")
+os.system("title Super Dos")
 #模拟加载
 print("328KB OK")
 time.sleep(3)
@@ -43,8 +43,7 @@ unlock.close
 unlock = open("unlock")
 unlock = unlock.read()
 #读取更新状态
-file = open("update","w")
-file.write("none")
+file = open("update","a")
 file.close
 file = open("update")
 upsoft = file.read()
@@ -124,7 +123,8 @@ def start():
 	reboot -- 重新启动
 	reboot safemode -- 进入修复模式
 	pcg -- 进入技术论坛(因为用到最新开发的网络，所以还是测试版本)
-	start -- 执行指定文件''')
+	start -- 执行指定文件
+	reupd -- 更新更新状态（更新了之后用，可以跳过版本提示）''')
 		elif command == "nd":
 			name = input("请输入文件名字：")
 			name = name + ".superdos"
@@ -245,23 +245,54 @@ def start():
 			print("OK!")
 			start()
 		elif command == "update":
-			api = "https://api.github.com/repos/pengxiaohang/Super-Dos"#设置api
-			update = requests.get(api,headers="",verify=False)#爬取github上的更新时间
-			update = update.json()#转换为json字典
-			update = update.get("updated_at")#提取其中时间
-			update = re.findall("\d",update)#只提取数字，也就是日期
-			update = "".join(update)#合并获取的日期
-			if update > upsoft:
-				print("检测到新版本系统，是否查看(y/n)?")
-				yes = input()
-				if yes == "y":
-					webbrowser.open("https://github.com/pengxiaohang/Super-Dos")
-				elif yes == "n":
-					pass
+			try:
+				print("正在获取更新...")
+				api = "https://api.github.com/repos/pengxiaohang/Super-Dos"#设置api
+				update = requests.get(api,headers="",verify=False)#爬取github上的更新时间
+				update = update.json()#转换为json字典
+				update = update.get("updated_at")#提取其中时间
+				update = re.findall("\d",update)#只提取数字，也就是日期
+				update = "".join(update)#合并获取的日期
+				if update > upsoft:#检测当前更新版本是否低于github上的日期，如果高于说明有更新
+					print("检测到新系统，是否查看(y/n)?")
+					yes = input()
+					if yes == "y":
+						webbrowser.open("https://github.com/pengxiaohang/Super-Dos/releases")
+					elif yes == "n":
+						pass
+					else:
+						print("???")
 				else:
-					print("???")
-			else:
-				print("暂无新版本！")
+					print("暂无新系统！")
+			except:
+				print("获取更新时出现了未知错误！")
+		elif command == "reupd":
+			#获取当前时间戳并转换生成到time_tuple列表
+			time_tuple = time.localtime(time.time())
+			#把列表指定的元素提取并判断是不是两位数，如果是则在左边补0
+			time_tuple3 = time_tuple[3]
+			time_tuple3 -= 12
+			time_tuple3 = str(time_tuple3)
+			if int(time_tuple3) < 10:
+				time_tuple3 = time_tuple3.rjust(2,"0")
+			time_tuple1 = time_tuple[1]
+			time_tuple1 = str(time_tuple1)
+			if int(time_tuple1) < 10:
+				time_tuple1 = time_tuple1.rjust(2,"0")
+			time_tuple2 = time_tuple[2]
+			time_tuple2 = str(time_tuple2)
+			if int(time_tuple2) < 10:
+				time_tuple2 = time_tuple2.rjust(2,"0")
+			time_tuple4 = time_tuple[4]
+			time_tuple4 = str(time_tuple4)
+			if int(time_tuple4) < 10:
+				time_tuple4 = time_tuple4.rjust(2,"0")
+			time_tuple5 = time_tuple[5]
+			time_tuple5 = str(time_tuple5)
+			if int(time_tuple5) < 10:
+				time_tuple5 = time_tuple5.rjust(2,"0")
+			nd("update",str(time_tuple[0])+time_tuple1+time_tuple2+time_tuple3+time_tuple4+time_tuple5)
+			print("版本已更新")
 		else:
 			print("未知指令，请使用help查看指令")
 #判断是否更改文件，如果更改将重复提示异常，否则正常进入
@@ -274,17 +305,34 @@ if yesno == 0:
 	while 1:
 		print("□□□□□□□□□□□□□□□□□□□□")
 		time.sleep(3)
-if upsoft != "none":
+if upsoft:
 	start()
-elif upsoft == "none":
+else:
+	#获取当前时间戳并转换生成到time_tuple列表
 	time_tuple = time.localtime(time.time())
+	#把列表指定的元素提取并判断是不是两位数，如果是则在左边补0
 	time_tuple3 = time_tuple[3]
 	time_tuple3 -= 12
 	time_tuple3 = str(time_tuple3)
-	time_tuple3 = re.findall("\d",time_tuple3)
-	time_tuple3 = "".join(time_tuple3)
-	nd("update",str(time_tuple[0])+str(time_tuple[1])+str(time_tuple[2])+str(time_tuple3)+str(time_tuple[4])+str(time_tuple[5]))
+	if int(time_tuple3) < 10:
+		time_tuple3 = time_tuple3.rjust(2,"0")
+	time_tuple1 = time_tuple[1]
+	time_tuple1 = str(time_tuple1)
+	if int(time_tuple1) < 10:
+		time_tuple1 = time_tuple1.rjust(2,"0")
+	time_tuple2 = time_tuple[2]
+	time_tuple2 = str(time_tuple2)
+	if int(time_tuple2) < 10:
+		time_tuple2 = time_tuple2.rjust(2,"0")
+	time_tuple4 = time_tuple[4]
+	time_tuple4 = str(time_tuple4)
+	if int(time_tuple4) < 10:
+		time_tuple4 = time_tuple4.rjust(2,"0")
+	time_tuple5 = time_tuple[5]
+	time_tuple5 = str(time_tuple5)
+	if int(time_tuple5) < 10:
+		time_tuple5 = time_tuple5.rjust(2,"0")
+	nd("update",str(time_tuple[0])+time_tuple1+time_tuple2+time_tuple3+time_tuple4+time_tuple5)
 	start()
-else:
-	print("读取更新状态时发生错误")
-	input("按任意键继续...")
+print("读取更新状态时发生错误")
+input("按任意键继续...")
