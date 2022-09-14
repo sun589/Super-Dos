@@ -1,10 +1,10 @@
 #安装模块
 import time
 import random
+import requests
+import re
+import webbrowser
 from os import system
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
-import numpy as np
 #更改窗口名称
 system("title Super Dos")
 #模拟加载
@@ -23,7 +23,6 @@ print("SUPER DOS[版本1.0]\nby bilibili 滑稽到滑稽的滑稽")
 def nd(name,data):
 	file = open(name,"w")
 	file.write(data)
-	print("OK!")
 #定义一个检查指定文件的函数
 def fileok(name,data):
 	file = open(name,"a")
@@ -43,6 +42,13 @@ unlock = open("unlock","a")
 unlock.close
 unlock = open("unlock")
 unlock = unlock.read()
+#读取更新状态
+file = open("update","w")
+file.write("none")
+file.close
+file = open("update")
+upsoft = file.read()
+file.close
 #定义进入安全模式函数
 def safemode():
 	global key#将全局变量带入局部变量
@@ -124,6 +130,7 @@ def start():
 			name = name + ".superdos"
 			data = input("请输入内容，因为技术原因无法换行：")
 			nd(name,data)
+			print("OK!")
 		elif command == "python":
 			pycommand = input("请输入python命令(无法换行）：")
 			#判断错误
@@ -202,11 +209,12 @@ def start():
 			elif ok == "2":
 				print("SuperDos的权限划分是user<system<install,听说根据zsdn上的大佬分析源代码发现会在系统目录生成各种文件，只有install权限才能查看,不过听说有人获取了install权限并且删文件导致系统崩溃,说不定以后就会有手机一样的刷机了\n作者：我只是个闲聊的大佬")
 		elif command == "start":
+			#读取文件，没有创建
 			file = open("file","a")
 			file.close
 			file = open("file")
 			data = file.read()
-			if data:
+			if data:#检测文字是否为空，空则填充
 				file = open("file")
 				data = file.read()
 				print(data)
@@ -221,11 +229,7 @@ def start():
 				file.close
 			file = input("请输入文件名(包含后缀):")
 			if file == "python.pic":
-				lena = mpimg.imread(r'python.jpg')
-				lena.shape
-				plt.imshow(lena)
-				plt.axis('off')
-				plt.show()
+				open("python.jpg")
 			else:
 				if unlock == "unlock":
 					p = "0"
@@ -240,6 +244,24 @@ def start():
 			time.sleep(3)
 			print("OK!")
 			start()
+		elif command == "update":
+			api = "https://api.github.com/repos/pengxiaohang/Super-Dos"#设置api
+			update = requests.get(api,headers="",verify=False)#爬取github上的更新时间
+			update = update.json()#转换为json字典
+			update = update.get("updated_at")#提取其中时间
+			update = re.findall("\d",update)#只提取数字，也就是日期
+			update = "".join(update)#合并获取的日期
+			if update > upsoft:
+				print("检测到新版本系统，是否查看(y/n)?")
+				yes = input()
+				if yes == "y":
+					webbrowser.open("https://github.com/pengxiaohang/Super-Dos")
+				elif yes == "n":
+					pass
+				else:
+					print("???")
+			else:
+				print("暂无新版本！")
 		else:
 			print("未知指令，请使用help查看指令")
 #判断是否更改文件，如果更改将重复提示异常，否则正常进入
@@ -247,10 +269,22 @@ if unlock:
 	while unlock != "unlock":
 		print("系统异常，错误代码0x000000001")
 		time.sleep(3)
-	start()
 yesno = fileok("file","pydos.su\nshutdown.su\nsystem.sys\nload.dll\nprint.dll\nos.dll\nrandom.dll\ntime.dll\ncommand.su\nwordtext.dll\npython.pic")
 if yesno == 0:
 	while 1:
 		print("□□□□□□□□□□□□□□□□□□□□")
 		time.sleep(3)
-start()
+if upsoft != "none":
+	start()
+elif upsoft == "none":
+	time_tuple = time.localtime(time.time())
+	time_tuple3 = time_tuple[3]
+	time_tuple3 -= 12
+	time_tuple3 = str(time_tuple3)
+	time_tuple3 = re.findall("\d",time_tuple3)
+	time_tuple3 = "".join(time_tuple3)
+	nd("update",str(time_tuple[0])+str(time_tuple[1])+str(time_tuple[2])+str(time_tuple3)+str(time_tuple[4])+str(time_tuple[5]))
+	start()
+else:
+	print("读取更新状态时发生错误")
+	input("按任意键继续...")
