@@ -7,9 +7,8 @@ import re
 import os
 import traceback
 from tqdm import tqdm
-import pygame
+from pygame import mixer
 from func_timeout import func_timeout
-import ctypes, sys
 import socket
 import threading
 #更改窗口名称
@@ -30,35 +29,35 @@ time.sleep(1)
 os.system("cls")
 time.sleep(1)
 #读取序列号
-data = open(r'c:\key.supersystem','a')
-data.close()
-data = open(r'c:\key.supersystem')
-key = data.read()
-data.close()
-#读取解锁状态
-unlock = open("unlock","a")
-unlock.close()
-unlock = open("unlock")
-unlock = unlock.read()
+if not os.path.exists(r'c:\key.supersystem'):#判断序列号文件是否存在，不存在创建
+	data = open('c:\\key.supersystem','w')
+	data.write(str(random.randint(10000000000000, 99999999999999)))
+	data.close()
+	data = open("c:\\key.supersystem")
+	key = data.read()
+	data.close()
+else:
+	data = open('c:\\key.supersystem')
+	key = data.read()
+	data.close()
 #读取安全模式是否可以进入
 safe = open("safemode","a")
 safe.close()
 safe = open("safemode")
 opensafe = safe.read()
 safe.close()
-def is_admin():
-    try:
-        return ctypes.windll.shell32.IsUserAnAdmin()
-    except:
-        return False
-f = open(r"c:\Windows\boot.log",'a')
-f.close()
-f = open(r"c:\Windows\boot.log")
-if f.read() == '[info]start system':
-	while 1:
-		os.system("cls")
-		print("The boot.ini is error")
-f.close()
+#读取解锁状态
+unlock = open("unlock", "a")
+unlock.close()
+unlock = open("unlock")
+unlock = unlock.read()
+if os.path.exists('c:\\Windows\\boot.ini'):
+	f = open('c:\\Windows\\boot.ini')
+	if f.read() == '[info]start system':
+		while 1:
+			os.system("cls")
+			print("The boot file is error")
+	f.close()
 pygame_init = 0
 def nd(name,data):
 	file = open(name,"w")
@@ -68,10 +67,7 @@ for i in tqdm(range(100),desc='Loding'):
 	time.sleep(0.1)
 os.system("cls")
 time.sleep(0.5)
-if not os.path.exists("oobe.set"):
-	open("oobe.set",'x')
-oobe = open("oobe.set")
-if not oobe.read():
+def oobe():
 	os.system('color f0')
 	print('''
                     *********  *******  ******   *******
@@ -108,18 +104,6 @@ if not oobe.read():
 	os.system("cls")
 	nd('oobe.set','1')
 	print("所有设置已设置完毕，准备迎接你的新系统吧！")
-time.sleep(1)
-password = open("password").read()
-if password:
-	for _ in range(3):
-		if input("请输入密码(超过三次自动关机):") == password:
-			break
-		else:
-			print("密码错误！")
-	else:
-		exit()
-os.system("cls")
-print("\rSUPER DOS[版本1.0]\nby bilibili 滑稽到滑稽的滑稽")
 rerror = 0
 #定义一个检查指定文件的函数
 def fileok(path,data):
@@ -140,7 +124,7 @@ def error():
 	os.system("color 9F")
 	clear()
 	log = open("log.log","a")
-	log.write("[严重错误]\n"+traceback.format_exc()+"\n")
+	log.write(f"[严重错误]\n{traceback.format_exc()}{time.strftime('%Y-%m-%d %H:%M:%S')}\n")
 	log.close()
 	if rerror == 1:
 		print('''
@@ -151,7 +135,7 @@ def error():
 .   ((
       
 当前您的SuperDos可能出了点问题，或许你可以访问bilbili.com询问作者:)
-因为错误信息长度不确定，所以我把错误信息放到log文件里了:)
+因为错误信息可能过长，所以我把错误信息放到log文件里了:)
 5秒后将会尝试重启来解决...''')
 	elif rerror >= 5:
 		print("正在进入自动修复模式...")
@@ -168,22 +152,53 @@ def error():
       
 当前您的SuperDos可能出了点问题，或许你可以访问bilbili.com询问作者:)
 因为错误信息长度不确定，所以我把错误信息放到log文件里了:)
-检测到这是第'''+str(rerror)+"次错误,出现五次错误将进入自动修复模式\n"'''5秒后将会尝试重启来解决...''')
+检测到这是连续第'''+str(rerror)+"次错误,连续出现五次错误将进入自动修复模式\n"'''5秒后将会尝试重启来解决...''')
 	time.sleep(5)
 	if unlock:
 		if unlock != "unlock":
 			rerror += 1
 			error()
-	yesno = fileok("file","pydos.su\nshutdown.su\nsystem.sys\nload.dll\nprint.dll\nos.dll\nrandom.dll\ntime.dll\ncommand.su\nwordtext.dll\npython.pic")
-	if yesno == 0:
-		rerror += 1
-		error()
-	os.system(f'color {open("color").read()}')
 	clear()
-#定义进入安全模式函数
+	start()
+#定义显示内存溢出函数
+def memoryerror():
+	clear()
+	os.system('color 4F')
+	log = open("log.log","a")
+	log.write(f"[严重错误]\n{traceback.format_exc()}{time.strftime('%Y-%m-%d %H:%M:%S')}\n")
+	log.close()
+	print('''
+.   ((
+   (
+   (
+   (
+.   ((
+
+当前检测到内存溢出！！！
+请清除不必要的程序给superdos预留内存！！
+清除后按回车来继续！！''')
+	input()
+	clear()
+	start()
+#定义进入安全模式函数	log = open("log.log","a")
+	log.write(f"[严重错误]\n{traceback.format_exc()}{time.strftime('%Y-%m-%d %H:%M:%S')}\n")
+	log.close()
 def safemode(a=0):
+	password = open("password").read()
+	if password:
+		for _ in range(3):
+			if input("请输入密码(超过三次自动关机):") == password:
+				break
+			else:
+				print("密码错误！")
+		else:
+			exit()
 	global unlock
 	global rerror
+	if not unlock:
+		a = open('admin','w')
+		a.write('')
+		a.close()
 	if a == 1:
 		print("您是否确定修复，如果修复将会锁定system权限！")
 		yes = input('(y/n)')
@@ -225,50 +240,49 @@ def safemode(a=0):
 		print("5秒后即将重试...")
 		time.sleep(5)
 		safemode()
-	print("load system....")
+	print("loading system....")
 	time.sleep(3)
-	print("load safemode.dll...")
+	print("loading safemode.dll...")
 	time.sleep(5)
-	print('''load command.su
-	load drives.sys
-	load drivesystem.sys''')
+	print('''loading command.su
+	loading drives.sys
+	loading drivesystem.sys''')
 	time.sleep(1)
-	print("OK!")
+	clear()
 	while 1:
 		command = input("safemode>")
 		if command == "system unlock":
-			unlock = input("key:")
-			#读取解锁码，没有创建
-			unlockkey = open(r"unlockcode","a")
-			unlockkey = open(r"unlockcode")
-			unlockkey = unlockkey.read()
-			if key:#判断是否有序列号，否则创建
-				if unlock == unlockkey:#判断解锁码是否正确，否则提示
-					print("unlock...")
-					time.sleep(10)
-					nd("unlock","unlock")
-					print("reboot...")
-					time.sleep(0.5)
-					start()
-				else:
-					print("key error!")
+			input_key = int(input("key:"))
+			key_str = str(key)
+			unlock_key = 0
+			for i in key_str:
+				unlock_key += ord(i)
+			unlock_key *= 1145141919
+			if input_key == unlock_key:#判断解锁码是否正确，否则提示
+				print("unlock...")
+				time.sleep(10)
+				nd("unlock","unlock")
+				print("reboot...")
+				time.sleep(0.5)
+				clear()
+				start()
 			else:
-				data = open(r"c:\key.supersystem",'w')
-				data.write(str(random.randint(10000000000000,99999999999999)))
-				data = open(r"c:\key.supersystem")
-				key = data.read()
-				data.close()
+				print("key error!")
 		elif command == "unlockcode":
-			nd("unlockcode",(str(random.randint(1000000000,9999999999))))
-			unlockkey = open("unlockcode")
-			print(unlockkey.read())
+			key_str = str(key)
+			unlock_key = 0
+			for i in key_str:
+				unlock_key += ord(i)
+			unlock_key *= 1145141919
+			print(unlock_key)
 		elif command == "help":
 			print('''system unlock -- 解锁system
 rebuild -- 修复文件
 reboot -- 重启''')
+			if unlock:
+				print('admin-on -- 打开管理员模式\nadmin-off -- 关闭管理员模式')
 		elif command == "reboot":
-			os.startfile(__file__)
-			break
+			start()
 		elif command == "rebuild":
 			print("开始修复file文件...")
 			re = open("file","w")
@@ -279,26 +293,65 @@ reboot -- 重启''')
 			re = open("unlock","w")
 			re.write("")
 			time.sleep(0.5)
+			re = open('admin','w')
+			re.write('')
+			re.close()
 			print("修复完成！")
 			print("即将重启...")
 			time.sleep(0.5)
 			break
+		elif command == 'admin-on' and unlock:
+			a = open('admin','w')
+			a.write('1')
+			a.close()
+			print('true')
+		elif command == 'admin-off' and unlock:
+			a = open('admin','w')
+			a.write('')
+			a.close()
+			print('false')
 		else:
 			print("未知命令，请用help查看")
 def start():
+	password = open("password").read()
+	if password:
+		for _ in range(3):
+			if input("请输入密码(超过三次自动关机):") == password:
+				clear()
+				break
+			else:
+				print("密码错误！")
+		else:
+			exit()
+	global unlock
+	global rerror
+	if not unlock:
+		a = open('admin','w')
+		a.write('')
+		a.close()
 	with open('color') as _:
 		os.system(f"color {_.read()}")
 	global key#把key变量带入局部变量
 	global pygame_init
-	#再次读取解锁状态，防止解锁后无法检测到
+	#读取解锁状态，防止解锁后无法检测到
 	unlock = open("unlock","a")
 	unlock.close()
 	unlock = open("unlock")
 	unlock = unlock.read()
+	#读取admin状态，原因同上
+	if os.path.exists('admin'):
+		a = open('admin')
+		admin = a.read()
+		a.close()
+	else:
+		admin = ''
+	#读取用户名
 	with open("user") as a:
 		user_name = a.read()
+	print("SUPER DOS[版本1.0]\nby bilibili 滑稽到滑稽的滑稽")
 	while 1:#开始循环
 		command = input(f"{user_name}>")#输入命令
+		rerror = 0
 		#判断命令并执行相对应的指令
 		if command == "shutdown":
 			print("[-             ]")
@@ -321,12 +374,9 @@ def start():
 	reboot -- 重新启动
 	reboot safemode -- 进入修复模式
 	pcg -- 进入技术论坛
-	start -- 打开第三方软件
-	update -- 检查更新
 	time -- 查看当前时间
 	title -- 设置窗口标题
 	taskmgr -- 进程管理器
-	uninstall -- 卸载第三方软件
 	errortest -- 错误测试
 	geturl -- 获取数据
 	calc -- 计算器
@@ -340,6 +390,8 @@ def start():
 	virus
 	music -- 音乐播放器
 	superchat -- 聊天''')
+			if unlock and admin:
+				print("	admin-write -- 更改程序变量")
 		elif command == "python shell":
 			print("Python 3.8.6 Shell")
 			print("Input \"exit\" to exit. ")
@@ -351,14 +403,14 @@ def start():
 				try:
 					exec(pycommand)
 				except SyntaxError:
-					print("出错了！有可能是因为不能变量赋值的原因或者格式错误(SyntaxError)！")
+					print("出错了！有可能是因为格式错误(SyntaxError)！")
 				except TypeError:
 					print("发生了类型错误(TypeError)！")
 				except NameError:
 					print('未知命令或者变量错误(NameError)！')
 				except:
 					print("我也不知道发生了什么错误！")
-					print("错误信息："+traceback.format_exc())
+				print("错误信息："+traceback.format_exc())
 		elif command == "python file":
 			filename = input('请输入文件名：')
 			filename += ".txt"
@@ -384,34 +436,25 @@ def start():
 			print("-----------程序已结束-----------")
 		elif command == "info":
 			#利用布尔值判断序列号是否为空，如果为空则生成
-			if key:
-				if unlock == "unlock":#判断解锁状态
-					print("当前系统状态：已激活")
-					print("当前system解锁状态:Unlock")
-					print("序列号：",key)
-				elif unlock != "unlock" and unlock != "":
-					print("出现未知错误！")
-					time.sleep(1)
-					raise Exception("Unknown error.")
-				elif unlock == "":
-					print("当前系统状态：已激活")
-					print("当前system解锁状态:Locked")
-					print("序列号：",key)
-			else:
-				data = open(r"c:\key.supersystem",'w')
-				data.write(str(random.randint(10000000000000,99999999999999)))
-				data = open(r"c:\key.supersystem")
-				key = data.read()
+			if unlock == "unlock":#判断解锁状态
 				print("当前系统状态：已激活")
-				print("序列号:",key)
-				data.close
+				print("当前system解锁状态:Unlock")
+				print("序列号：",key)
+			elif unlock != "unlock" and unlock != "":
+				print("出现未知错误！")
+				time.sleep(1)
+				raise Exception("Unknown error.")
+			elif unlock == "":
+				print("当前系统状态：已激活")
+				print("当前system解锁状态:Locked")
+				print("序列号：",key)
 		elif command == "reboot safemode":
 			print("正在重启...")
 			time.sleep(2)
+			clear()
 			try:
 				safemode()
 			except:
-				global rerror
 				rerror += 1
 				error()
 		elif command == "pcg":
@@ -424,6 +467,7 @@ def start():
 有人吗
 666666666
 大佬nb！
+
 [帖子]SuperDos的权限划分
 评论：
 看来还是得等yyds大佬搞出install权限（doge）
@@ -432,32 +476,19 @@ def start():
 			if ok == "1":
 				print("第一步:进入修复模式\n第二步：输入unlockcode此时就会在系统目录下生成你的解锁码，输入system unlock后输入解锁码就可以解锁了！\n原理大概就是因为官方纯属没有删掉这个指令\n作者：yyds")
 			elif ok == "2":
-				print("SuperDos的权限划分是user<system<install,听说根据zsdn上的大佬分析源代码发现会在系统目录生成各种文件，只有install权限才能查看,不过听说有人获取了install权限并且删文件导致系统崩溃,说不定以后就会有手机一样的刷机了\n作者：我只是个闲聊的大佬")
-		elif command == "start":
-			print("\n".join(os.listdir(".\\soft\\")))#查看soft目录下的文件
-			start = input("请输入打开的软件：")
-			if os.path.exists(".\\soft\\"+start):
-				try:
-					startfile = open(".\\soft\\"+start).read()#读取文件
-					if 'os.system' in startfile:#检测是否会执行外部指令
-						print("检测到"+start+"程序运行时需要调用系统外部指令，是否同意?")
-						temp = input('(y/n)')
-						if temp == 'y':#用户同意
-							pass
-						else:#用户不同意
-							startfile = startfile.replace("os.system","print")#替换为print
-					exec(startfile)
-				except:
-					print("报错了！")
+				print("SuperDos的权限划分是user<system<install,听说根据zsdn上的大佬分析源代码发现会在系统目录生成各种文件，只有install权限才能查看,不过听说有人获取了install权限并且刷系统成功,说不定以后就会有手机一样的刷机了\n作者：我只是个闲聊的")
 		elif command == "reboot":
 			print("正在重启...")
 			time.sleep(3)
-			os.startfile(__file__)
+			clear()
+			start()
 			break
 		elif command == "textmanger":
 			filewrite = ''
 			name = input("请输入文件：")
 			name += ".txt"
+			if not os.path.exists('.\\text\\'):
+				os.mkdir('text')
 			if not os.path.exists(".\\text\\"+name):
 				open(".\\text\\"+name,"x")
 			file = open(".\\text\\"+name)
@@ -470,13 +501,11 @@ def start():
 				word = filetext
 			print("小技巧：您可以尝试在单独的一行输入fileclose并回车保存退出编辑！一个tab等于四个空格，刚好等于一个缩进！")
 			print("-----------文本分割线-----------")
-			print("功能列表： search(查找文字) save(保存并退出) b(删除上一个字符)")
+			print("功能列表： search(查找文字) save(保存并退出)")
 			print(word)
 			while True:
 				text = input()
-				if text == "nosave":
-					break
-				elif text == "search":
+				if text == "search":
 					search = input(r"查找文字(输入\d即可查找数字)：")#输入文字到search
 					searchnew = re.findall(".*"+search,word)#匹配search里的文字，并且用.*尽量取长
 					if searchnew == []:#判断是否为空
@@ -543,14 +572,8 @@ system.sys''')
 					print("无权限")
 			else:
 				print("错误：进程不存在")
-		elif command == "uninstall":
-			print("\n".join(os.listdir(".\\soft\\")))
-			start = input("请输入卸载的软件：")
-			if os.path.exists(".\\soft\\"+start):
-				os.remove(".\\soft\\"+start)
-				print("软件已卸载！")
 		elif command == "errortest":#让用户输入测试错误类型然后用raise触发错误
-			print("1.类型错误\n2.名称错误\n3.缩进错误\n4.格式错误\n5.无效参数")
+			print("1.类型错误\n2.名称错误\n3.缩进错误\n4.格式错误\n5.无效参数\n6.内存溢出")
 			errortest = input("请输入触发类型：")
 			if errortest == "1":
 				print("将会在3秒后发生报错...")
@@ -572,6 +595,10 @@ system.sys''')
 				print("将在3秒后发生报错...")
 				time.sleep(3)
 				raise ValueError("This is a test error")
+			elif errortest == '6':
+				print("将在3秒后发生报错...")
+				time.sleep(3)
+				raise MemoryError("This is a test error")
 			else:
 				raise NameError("What error???")
 		elif command == "geturl":
@@ -599,15 +626,15 @@ system.sys''')
 				if sure == "y":
 					try:
 						if temp == "1":
-							data = requests.get(url,headers="",verify=False)
+							data = requests.get(url,headers={"User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36 Edg/115.0.1901.200"},verify=False)
 							print("网页状态码："+str(data))
 							print("获取内容:\n"+data.text)
 						elif temp == "2":
-							data = requests.post(url,headers="",verify=False)
+							data = requests.post(url,headers={"User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36 Edg/115.0.1901.200"},verify=False)
 							print("网页状态码："+str("".join(re.findall("\d",data))))
 							print("获取内容:\n"+data.text)
 					except:
-						print("吼，死了啦，都是你害的")
+						print("错误！")
 		elif command == "calc":
 			calc = input("输入算式：")
 			try:
@@ -826,11 +853,15 @@ system.sys''')
 			yes = input()
 			if yes == 'yes':
 				clear()
-				f = open(r"c:\Windows\boot.log",'w')
+				os.system('color fc')
+				f = open(r"c:\boot.ini",'w')
 				f.write("[info]start system")
 				f.close()
 				pf = open(r"c:\windows\password.txt",'w')
-				pf.write("6230183")
+				pf.write('''
+恭喜你找到了virus的密码！
+The password is 6230183
+''')
 				pf.close()
 				print('''
  **
@@ -856,20 +887,14 @@ system.sys''')
 						time.sleep(3)
 						for x in range(1000000,1300000):
 							print("0x"+str(x).rjust(7,'0')+" error!")
-						if is_admin():
-							os.system("Taskkill /fi \"pid ge 1\" /f")
-						else:
-							if sys.version_info[0] == 3:
-								ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, __file__, None, 1)
-						while 1:
-							input()
+						for i in range(9999):
+							print(random.choice(['螟', 'ｧ', '螳', 'ｶ', '螂', 'ｽ', '謌', '第', '弍', '隸', 'ｴ', '逧', '�', '％', '逅', '�', 'ｦ', 'よ', '擂', '莉', '紋', 'ｺ', '�', '雛', '蝠', 'ｦ', '霎', '｣', '闔', 'ｫ', '髞', '滓', '巳', '諡', 'ｷ', '辜', 'ｫ', '蜊', 'ｧ', '讒', 'ｽ']),end='')
 					print("请输入密码：")
 					password = input()
 					if password == '6230183':
-						print("ok....")
-						print("算你厉害，在几秒后我将恢复所有我摧毁的东西，退出这个病毒")
+						print("解锁成功,恭喜!")
 						time.sleep(5)
-						jie = open(r"c:\Windows\boot.log",'w')
+						jie = open(r"c:\Windows\boot.ini",'w')
 						jie.write("error")
 						clear()
 						break
@@ -878,32 +903,35 @@ system.sys''')
 						c += 1
 		elif command == 'music':
 			if pygame_init != 1:
-				pygame.mixer.init()
+				mixer.init()
 				pygame_init = 1
 			while 1:
-				music_path = input("请输入路径(以.\\开头):")
+				music_path = input("请输入路径:")
 				try:
-					pygame.mixer.music.load(music_path)
-					pygame.mixer.music.play()
+					mixer.music.load(music_path)
+					mixer.music.play()
 					break
 				except:
-					continue
-			while 1:
+					break
+			while True:
 				try:
 					clear()
-					print(f'当前已放{pygame.mixer.music.get_pos()//1000}秒')
+					second = mixer.music.get_pos()//1000
+					if second == -1:
+						break
+					print(f'当前已放{second}秒')
 					_temp = func_timeout(1,lambda:input("输入1暂停，输入2退出："))
 					if _temp == '1':
-						pygame.mixer.music.pause()
+						mixer.music.pause()
 						while 1:
 							if input("输入continue继续:") == 'continue':
-								pygame.mixer.music.unpause()
+								mixer.music.unpause()
 								break
 					elif _temp == '2':
-						pygame.mixer.music.stop()
+						mixer.music.stop()
 						break
 				except:
-					pass
+					continue
 		elif command == 'download':
 			url = input("请输入网址：")
 			download_name = input("名称：")
@@ -918,13 +946,15 @@ system.sys''')
 			nd("oobe.set",'')
 			print("设置完毕，请重启以进入oobe")
 		elif command == 'superchat':
-			quit_status = 0
-			if input("1.创建房间\n2.加入房间\n") == '1':
+			change = input("1.创建房间\n2.加入房间\n")
+			if change == '1':
 				server = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 				server.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
 				port = random.randint(2333,10000)
-				server.bind(('127.0.0.1',port))
-				print(f"服务器已向127.0.0.1:{port}发起连接...")
+				hostname = socket.gethostname()
+				ip_address = socket.gethostbyname(hostname)
+				server.bind((ip_address,port))
+				print(f"服务器已向{ip_address}:{port}发起连接(仅同个网络下的电脑可连接)...")
 				server.listen(1)
 				clientsocket, address = server.accept()
 				print("检测到连接:",address)
@@ -934,6 +964,7 @@ system.sys''')
 					def __init__(self):
 						threading.Thread.__init__(self)
 					def run(self):
+						global flag
 						while True:
 							try:
 								data = clientsocket.recv(9999).decode('utf-8')
@@ -946,7 +977,6 @@ system.sys''')
 					try:
 						data = input("You:")
 						if data == 'close':
-							clientsocket.send(data.encode('utf-8'))
 							clientsocket.close()
 							break
 						else:
@@ -954,17 +984,19 @@ system.sys''')
 					except:
 						print("对方已断开连接")
 						break
-			else:
+			elif change == '2':
 				ip = input("输入ip:")
 				port = int(input("输入端口:"))
 				print("connecting...")
-				client = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+				client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 				try:
 					client.connect((f'{ip}',port))
 				except:
 					print('连接失败')
 				else:
 					print("连接成功")
+					print('输入close退出')
+					print("------------聊天------------")
 					class listen(threading.Thread):
 						def __init__(self):
 							threading.Thread.__init__(self)
@@ -981,7 +1013,6 @@ system.sys''')
 						try:
 							data = input("You:")
 							if data == 'close':
-								client.send(data.encode('utf-8'))
 								client.close()
 								break
 							else:
@@ -989,21 +1020,51 @@ system.sys''')
 						except:
 							print("对方已断开连接")
 							break
+		elif command == 'admin-write' and unlock and admin:
+			change = input('注意！前方为开发者区域，随意修改很可能导致崩溃！！！(y/n):')
+			if change=='y':
+				print('输入exit退出')
+				for name, value in globals().copy().items():
+					print(f'{name}={value}\ttype={type(value)}')
+				write_name = input('请输入更改的变量名:')
+				write_text = input('输入更改的文字:')
+				while True:
+					write_type = input("输入值的类型(int,list,string,float):")
+					if write_type == 'int':
+						write_text = int(write_text)
+					elif write_type == 'list':
+						write_text = list(write_text)
+					elif write_type == 'string':
+						pass
+					elif write_type == 'float':
+						write_text = float(write_text)
+					else:
+						print("非支持的类型")
+						continue
+					break
+				globals()[write_name] = write_text
+				print('done!')
 		else:
 			print("未知命令，请用help查看")
+if not os.path.exists("oobe.set"):
+	open("oobe.set",'x')
+oobe_status = open("oobe.set")
+#判断是否为第一次使用，是则执行oobe
+if not oobe_status.read():
+	oobe()
 #判断是否更改文件，如果更改将重复提示异常，否则正常进入
 if unlock:
 	if unlock != "unlock":
 		rerror += 1
 		error()
-yesno = fileok("file","pydos.su\nshutdown.su\nsystem.sys\nload.dll\nprint.dll\nos.dll\nrandom.dll\ntime.dll\ncommand.su\nwordtext.dll\npython.pic")
-if yesno == 0:
-	rerror += 1
-	error()
 #一直检测报错
 while 1:
 	try:
 		start()
+	except SystemExit:
+		exit()
+	except MemoryError:
+		memoryerror()
 	except:
 		#在这里做个小成就：突破一千行代码:)
 		rerror += 1
