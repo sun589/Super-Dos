@@ -11,6 +11,7 @@ from pygame import mixer
 from func_timeout import func_timeout
 import socket
 import threading
+import win32api,win32con
 #更改窗口名称
 os.system("title Super Dos")
 #模拟加载
@@ -28,29 +29,30 @@ print("\rram:1024KB         ",end='')
 time.sleep(1)
 os.system("cls")
 time.sleep(1)
+#设置操作注册表的各种东西
+reg_root = win32con.HKEY_CURRENT_USER
+reg_path = "SOFTWARE\\Superdos"
+reg_flags = win32con.WRITE_OWNER|win32con.KEY_WOW64_64KEY|win32con.KEY_ALL_ACCESS
+win32api.RegCreateKeyEx(reg_root, reg_path, reg_flags)
+reg_key = win32api.RegOpenKeyEx(reg_root, reg_path, 0, reg_flags)
 #读取序列号
-if not os.path.exists(r'c:\key.supersystem'):#判断序列号文件是否存在，不存在创建
-	data = open('c:\\key.supersystem','w')
-	data.write(str(random.randint(10000000000000, 99999999999999)))
-	data.close()
-	data = open("c:\\key.supersystem")
-	key = data.read()
-	data.close()
-else:
-	data = open('c:\\key.supersystem')
-	key = data.read()
-	data.close()
+try:
+	key = win32api.RegQueryValueEx(reg_key,"system_key")[0]
+except:#判断序列号是否存在，不存在创建
+	win32api.RegSetValueEx(reg_key, "system_key", 0, win32con.REG_SZ, str(random.randint(10000000000000, 99999999999999)))
+	key = win32api.RegQueryValueEx(reg_key, "system_key")[0]
 #读取安全模式是否可以进入
-safe = open("safemode","a")
-safe.close()
-safe = open("safemode")
-opensafe = safe.read()
-safe.close()
+try:
+	opensafe = win32api.RegQueryValueEx(reg_key,"safemode_status")[0]
+except:
+	win32api.RegSetValueEx(reg_key, "safemode_status", 0, win32con.REG_SZ, 'true')
+	opensafe = win32api.RegQueryValueEx(reg_key, "safemode_status")[0]
 #读取解锁状态
-unlock = open("unlock", "a")
-unlock.close()
-unlock = open("unlock")
-unlock = unlock.read()
+try:
+	unlock = win32api.RegQueryValueEx(reg_key,"unlock_status")[0]
+except:
+	win32api.RegSetValueEx(reg_key, "unlock_status", 0, win32con.REG_SZ, 'false')
+	unlock = win32api.RegQueryValueEx(reg_key, "unlock_status")[0]
 if os.path.exists('c:\\Windows\\boot.ini'):
 	f = open('c:\\Windows\\boot.ini')
 	if f.read() == '[info]start system':
@@ -59,11 +61,7 @@ if os.path.exists('c:\\Windows\\boot.ini'):
 			print("The boot file is error")
 	f.close()
 pygame_init = 0
-def nd(name,data):
-	file = open(name,"w")
-	file.write(data)
-	file.close()
-for i in tqdm(range(100),desc='Loding'):
+for i in tqdm(range(100),desc='Loding',unit='kb'):
 	time.sleep(0.1)
 os.system("cls")
 time.sleep(0.5)
@@ -82,10 +80,10 @@ def oobe():
 	os.system('cls')
 	print("=============设置=============")
 	user_name = input("请输入您的用户名(后期可以在filemanger找到user修改)：")
-	user_password = input("请输入密码(空白则为不设置)(后期可以在password文件修改):")
+	user_password = input("请输入密码(空白则为不设置):")
 	print("正在设置...")
-	nd('user',user_name)
-	nd('password',user_password)
+	win32api.RegSetValueEx(reg_key, "Name", 0, win32con.REG_SZ, user_name)
+	win32api.RegSetValueEx(reg_key, "Password", 0, win32con.REG_SZ, user_password)
 	os.system('cls')
 	print('=============个性化=============')
 	print('''    0 = 黑色       8 = 灰色
@@ -100,20 +98,13 @@ def oobe():
 	colorfont = input("请输入您想要的字体颜色：")
 	color = input("请输入想要的背景颜色：")
 	print("正在设置...")
-	nd('color',color+colorfont)
+	win32api.RegSetValueEx(reg_key, "color", 0, win32con.REG_SZ, color+colorfont)
 	os.system("cls")
-	nd('oobe.set','1')
+	win32api.RegSetValueEx(reg_key, "oobe_status", 0, win32con.REG_SZ, 'true')
 	print("所有设置已设置完毕，准备迎接你的新系统吧！")
+	time.sleep(0.75)
+	start()
 rerror = 0
-#定义一个检查指定文件的函数
-def fileok(path,data):
-	file = open(path,"a")
-	file = open(path)
-	file = file.read()
-	if file == data:
-		return 1
-	else:
-		return 0
 #定义清屏函数
 def clear():
 	os.system("cls")
@@ -124,7 +115,7 @@ def error():
 	os.system("color 9F")
 	clear()
 	log = open("log.log","a")
-	log.write(f"[严重错误]\n{traceback.format_exc()}{time.strftime('%Y-%m-%d %H:%M:%S')}\n")
+	log.write(f"[严重错误]\n{traceback.format_exc()}{time.strftime('%Y-%m-%d %H:%M:%S')}\n\n")
 	log.close()
 	if rerror == 1:
 		print('''
@@ -180,11 +171,12 @@ def memoryerror():
 	input()
 	clear()
 	start()
-#定义进入安全模式函数	log = open("log.log","a")
-	log.write(f"[严重错误]\n{traceback.format_exc()}{time.strftime('%Y-%m-%d %H:%M:%S')}\n")
+#定义进入安全模式函数
+	log = open("log.log","a")
+	log.write(f"[严重错误]\n{traceback.format_exc()}{time.strftime('%Y-%m-%d %H:%M:%S')}\n\n")
 	log.close()
 def safemode(a=0):
-	password = open("password").read()
+	password = win32api.RegQueryValueEx(reg_key, 'password')[0]
 	if password:
 		for _ in range(3):
 			if input("请输入密码(超过三次自动关机):") == password:
@@ -196,9 +188,7 @@ def safemode(a=0):
 	global unlock
 	global rerror
 	if not unlock:
-		a = open('admin','w')
-		a.write('')
-		a.close()
+		win32api.RegSetValueEx(reg_key, "admin_status", 0, win32con.REG_SZ, "false")
 	if a == 1:
 		print("您是否确定修复，如果修复将会锁定system权限！")
 		yes = input('(y/n)')
@@ -207,35 +197,21 @@ def safemode(a=0):
 				if unlock != "unlock":
 					rerror += 1
 					error()
-			yesno = fileok("file","pydos.su\nshutdown.su\nsystem.sys\nload.dll\nprint.dll\nos.dll\nrandom.dll\ntime.dll\ncommand.su\nwordtext.dll\npython.pic")
-			if yesno == 0:
-				rerror += 1
-				error()
 			return
-		print("开始修复file文件...")
-		re = open("file","w")
-		re.write("pydos.su\nshutdown.su\nsystem.sys\nload.dll\nprint.dll\nos.dll\nrandom.dll\ntime.dll\ncommand.su\nwordtext.dll\npython.pic")
-		re.close()
-		time.sleep(5)
-		print("开始修复unlock文件...")
-		re = open("unlock","w")
-		re.write("")
+		print("开始修复unlock状态...")
+		win32api.RegSetValueEx(reg_key, "unlock_status", 0, win32con.REG_SZ, "false")
 		time.sleep(0.5)
 		print("修复完成！")
 		print("即将重启...")
 		time.sleep(0.5)
 		rerror = 0
-		unlock = open("unlock","a")
-		unlock.close()
-		unlock = open("unlock")
-		unlock = unlock.read()
+		unlock = win32api.RegQueryValueEx(reg_key, 'unlock_status')[0]
+		win32api.RegSetValueEx(reg_key, "admin_status", 0, win32con.REG_SZ, "false")
 		return
 	#将全局变量带入局部变量
 	global key
-	safe = open("safemode")
-	opensafe = safe.read()
-	safe.close()
-	if opensafe:
+	opensafe = win32api.RegQueryValueEx(reg_key, 'safemode_status')[0]
+	if opensafe == 'false':
 		print("进入修复模式失败:0x000000003")
 		print("5秒后即将重试...")
 		time.sleep(5)
@@ -249,7 +225,7 @@ def safemode(a=0):
 	loading drivesystem.sys''')
 	time.sleep(1)
 	clear()
-	while 1:
+	while True:
 		command = input("safemode>")
 		if command == "system unlock":
 			input_key = int(input("key:"))
@@ -258,62 +234,46 @@ def safemode(a=0):
 			for i in key_str:
 				unlock_key += ord(i)
 			unlock_key *= 1145141919
-			if input_key == unlock_key:#判断解锁码是否正确，否则提示
-				print("unlock...")
+			if input_key == unlock_key and input("解锁将会恢复出厂,你确定吗?(y/n)") == 'y':#判断解锁码是否正确，否则提示
+				print("unlocking...")
 				time.sleep(10)
-				nd("unlock","unlock")
-				print("reboot...")
-				time.sleep(0.5)
+				win32api.RegSetValueEx(reg_key, "unlock_status", 0, win32con.REG_SZ, "false")
+				win32api.RegSetValueEx(reg_key, "oobe_status", 0, win32con.REG_SZ, "false")
+				print("rebooting...")
+				time.sleep(3)
 				clear()
-				start()
-			else:
-				print("key error!")
-		elif command == "unlockcode":
-			key_str = str(key)
-			unlock_key = 0
-			for i in key_str:
-				unlock_key += ord(i)
-			unlock_key *= 1145141919
-			print(unlock_key)
+				oobe()
 		elif command == "help":
 			print('''system unlock -- 解锁system
 rebuild -- 修复文件
 reboot -- 重启''')
-			if unlock:
+			if unlock == 'true':
 				print('admin-on -- 打开管理员模式\nadmin-off -- 关闭管理员模式')
 		elif command == "reboot":
+			time.sleep(2)
+			clear()
 			start()
 		elif command == "rebuild":
-			print("开始修复file文件...")
-			re = open("file","w")
-			re.write("pydos.su\nshutdown.su\nsystem.sys\nload.dll\nprint.dll\nos.dll\nrandom.dll\ntime.dll\ncommand.su\nwordtext.dll\npython.pic")
-			re.close()
-			time.sleep(5)
-			print("开始修复unlock文件...")
-			re = open("unlock","w")
-			re.write("")
+			print("开始修复unlock状态...")
+			win32api.RegSetValueEx(reg_key, "unlock_status", 0, win32con.REG_SZ, "false")
 			time.sleep(0.5)
-			re = open('admin','w')
-			re.write('')
-			re.close()
 			print("修复完成！")
 			print("即将重启...")
 			time.sleep(0.5)
+			rerror = 0
+			unlock = win32api.RegQueryValueEx(reg_key, 'unlock_status')[0]
+			win32api.RegSetValueEx(reg_key, "admin_status", 0, win32con.REG_SZ, "false")
 			break
-		elif command == 'admin-on' and unlock:
-			a = open('admin','w')
-			a.write('1')
-			a.close()
+		elif command == 'admin-on' and unlock == 'true':
+			win32api.RegSetValueEx(reg_key, "admin_status", 0, win32con.REG_SZ, "true")
 			print('true')
-		elif command == 'admin-off' and unlock:
-			a = open('admin','w')
-			a.write('')
-			a.close()
+		elif command == 'admin-off' and unlock == 'true':
+			win32api.RegSetValueEx(reg_key, "admin_status", 0, win32con.REG_SZ, "false")
 			print('false')
 		else:
 			print("未知命令，请用help查看")
 def start():
-	password = open("password").read()
+	password = win32api.RegQueryValueEx(reg_key, 'password')[0]
 	if password:
 		for _ in range(3):
 			if input("请输入密码(超过三次自动关机):") == password:
@@ -325,31 +285,24 @@ def start():
 			exit()
 	global unlock
 	global rerror
+	global admin
 	if not unlock:
-		a = open('admin','w')
-		a.write('')
-		a.close()
-	with open('color') as _:
-		os.system(f"color {_.read()}")
+		win32api.RegSetValueEx(reg_key, "admin_status", 0, win32con.REG_SZ, "false")
+	os.system(f"color {win32api.RegQueryValueEx(reg_key, 'color')[0]}")
 	global key#把key变量带入局部变量
 	global pygame_init
 	#读取解锁状态，防止解锁后无法检测到
-	unlock = open("unlock","a")
-	unlock.close()
-	unlock = open("unlock")
-	unlock = unlock.read()
+	unlock = win32api.RegQueryValueEx(reg_key, 'unlock_status')[0]
 	#读取admin状态，原因同上
-	if os.path.exists('admin'):
-		a = open('admin')
-		admin = a.read()
-		a.close()
-	else:
-		admin = ''
+	try:
+		admin = win32api.RegQueryValueEx(reg_key, "admin_status")[0]
+	except:
+		win32api.RegSetValueEx(reg_key, "system_key", 0, win32con.REG_SZ,'false')
+		admin = win32api.RegQueryValueEx(reg_key, "admin_status")[0]
 	#读取用户名
-	with open("user") as a:
-		user_name = a.read()
-	print("SUPER DOS[版本1.0]\nby bilibili 滑稽到滑稽的滑稽")
-	while 1:#开始循环
+	user_name = win32api.RegQueryValueEx(reg_key, 'Name')[0]
+	print("SUPER DOS[版本2.1]\nby bilibili 滑稽到滑稽的滑稽")
+	while True:#开始循环
 		command = input(f"{user_name}>")#输入命令
 		rerror = 0
 		#判断命令并执行相对应的指令
@@ -367,7 +320,7 @@ def start():
 		elif command == "help":
 			print('''	help -- 帮助
 	shutdown -- 关机
-	textmanger -- 文件助手（原名nd）
+	textmanger -- 文件助手
 	python shell -- 进入python shell 3.8.6
 	python file -- 用python执行文件（可用文件助手创建）
 	info -- 系统等各种状态
@@ -389,8 +342,9 @@ def start():
 	paint -- 画图
 	virus
 	music -- 音乐播放器
-	superchat -- 聊天''')
-			if unlock and admin:
+	superchat -- 聊天
+	update -- 检查更新''')
+			if unlock == 'true' and admin == 'true':
 				print("	admin-write -- 更改程序变量")
 		elif command == "python shell":
 			print("Python 3.8.6 Shell")
@@ -523,18 +477,12 @@ def start():
 			clear()
 		elif command == "set safemode 0":
 			if unlock == "unlock":#判断是否解锁，下面一样
-				safe = open("safemode","w")
-				safe.write("1")
-				print("ok....")
-				safe.close()
+				win32api.RegSetValueEx(reg_key, "safemode_status", 0, win32con.REG_SZ, "false")
 			else:
 				print("无权限！")
 		elif command == "set safemode 1":
 			if unlock == "unlock":
-				safe = open("safemode","w")
-				safe.write("")
-				print("ok!")
-				safe.close()
+				win32api.RegSetValueEx(reg_key, "safemode_status", 0, win32con.REG_SZ, "true")
 			else:
 				print("无权限！")
 		elif command == "":
@@ -681,18 +629,11 @@ system.sys''')
 				elif filecommand == 'del':
 					file = input("file:")
 					if path == ".\\":#判断是否在根目录下
-						if file == 'file' or file == 'settings' or file == 'safemode' or file == 'unlock' or file == 'update' or file == 'unlockcode':#判断是不是系统文件
-							if unlock == 'unlock':#判断是否解锁
-								os.remove(path+file)
-								print("ok")
-							else:
-								print("未获取到超级用户权限！")
-						else:
-							try:
-								os.remove(path+file)
-								print("ok")
-							except:
-								print("文件不存在")
+						try:
+							os.remove(path+file)
+							print("ok")
+						except:
+							print("文件不存在")
 					else:
 						os.remove(path+file)
 						print("ok")
@@ -943,8 +884,9 @@ The password is 6230183
 				f.close()
 				print("下载完成！")
 		elif command == 'oobe':
-			nd("oobe.set",'')
-			print("设置完毕，请重启以进入oobe")
+			if input("y/n?") == 'y:':
+				time.sleep(2)
+				oobe()
 		elif command == 'superchat':
 			change = input("1.创建房间\n2.加入房间\n")
 			if change == '1':
@@ -1044,19 +986,46 @@ The password is 6230183
 					break
 				globals()[write_name] = write_text
 				print('done!')
+		elif command == 'update':
+			try:
+				print("正在获取更新...")
+				api = "https://api.github.com/repos/pengxiaohang/Super-Dos"#设置api
+				update = requests.get(api,verify=False)#爬取github上的更新时间
+				update = update.json()#转换为json字典
+				update = update.get("updated_at")#提取其中时间
+				update = re.findall("\d",update)#只提取数字，也就是日期
+				update = "".join(update)#合并获取的日期
+				mtime = time.localtime(int(os.path.getmtime(__file__)))
+				mtime = time.strftime("%Y%m%d%H%M%S",mtime)
+				print(update,mtime)
+				if update > mtime:#检测当前更新版本是否低于github上的日期，如果高于说明有更新
+					print("检测到新系统，是否查看(y/n)?")
+					yes = input()
+					if yes == "y":
+						pass
+					elif yes == "n":
+						pass
+					else:
+						print("???")
+				else:
+					print("暂无新系统！")
+			except:
+				print("获取更新时出现了未知错误！")
 		else:
 			print("未知命令，请用help查看")
-if not os.path.exists("oobe.set"):
-	open("oobe.set",'x')
-oobe_status = open("oobe.set")
+try:
+	oobe_status = win32api.RegQueryValueEx(reg_key, 'oobe_status')[0]
+except Exception as e:
+	win32api.RegSetValueEx(reg_key, "oobe_status", 0, win32con.REG_SZ, 'false')
+	oobe_status = win32api.RegQueryValueEx(reg_key, 'oobe_status')[0]
 #判断是否为第一次使用，是则执行oobe
-if not oobe_status.read():
+if oobe_status != 'true':
 	oobe()
 #判断是否更改文件，如果更改将重复提示异常，否则正常进入
 if unlock:
-	if unlock != "unlock":
+	if unlock != "true" and unlock != "false":
 		rerror += 1
-		error()
+		raise Exception("unlock is invaild!")
 #一直检测报错
 while 1:
 	try:
