@@ -1137,7 +1137,7 @@ The password is 6230183
 						except:
 							print("对方已断开连接")
 							break
-		elif command == 'admin-write' and unlock == 'true' and admin == 'true':
+		elif command == 'admin_write' and unlock == 'true' and admin == 'true':
 			change = input('注意！前方为开发者区域，随意修改很可能导致崩溃！！！(y/n):')
 			if change=='y':
 				print('输入exit退出')
@@ -1176,7 +1176,7 @@ The password is 6230183
 					print(f"最新版本:{update_message['name'][-3:]} 当前版本:{version}")
 					if update_message['name'][-3:] > version:#检测当前更新版本是否低于github上的版本，如果高于说明有更新
 						print(f"检测到新版本:{update_message['html_url'][-3:]}")
-						print(f"更新信息:{update_message['body']}")
+						print(f"更新信息:\n{update_message['body']}")
 						yes = input("是否更新?(Yes/No):")
 						if yes == "Y" or yes == 'y' or yes == 'Yes' or yes == 'yes':
 							print("正在下载中....")
