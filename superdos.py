@@ -44,6 +44,7 @@ def boot(mode: int = 0, safemode_fix: int = 0):
 	:return:
 	"""
     boot_flag = False
+    s = 'FAILED TO BOOT!'
     try:
         global oobe_status, rerror, unlock, n, key, opensafe, reg_root, reg_key, reg_flags, reg_path, admin
         os.system('color 07')
@@ -125,18 +126,20 @@ def boot(mode: int = 0, safemode_fix: int = 0):
         # 判断是否为第一次使用，是则执行oobe
         if oobe_status == 'false':
             oobe()
+        if len(str(key)) != 14:
+            boot_error("Serial number is invaild!")
+        for i in str(key):
+            if not ('0' <= i <= '9'):
+                boot_error("Serial number is invaild!")
         if oobe_status == 'false' and oobe_status != 'true':
-            raise Exception("oobe status is invaild!")
+            boot_error("oobe status is invaild!")
         # 判断是否更改值，如果更改将重复提示异常，否则正常进入
         if unlock != "true" and unlock != "false":
             rerror += 1
-            raise Exception("unlock status is invaild!")
-        for i in str(key):
-            if not ('0' <= i <= '9'):
-                raise Exception("Serial number is invaild!")
+            boot_error("unlock status is invaild!")
     except Exception as e:
         boot_flag = True
-        s = e[:]
+        s = str(e)
     if boot_flag == True:
         boot_error(s)
     if mode == 0:
@@ -290,7 +293,7 @@ Information:{error_message}
     input()
     print("Rebooting...")
     time.sleep(2)
-    return
+    boot(0)
 # 定义错误函数
 def error(error_message=''):
     global rerror
