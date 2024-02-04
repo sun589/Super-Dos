@@ -10,6 +10,7 @@ import os
 os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "noting here..."  # 仅为隐藏pygame安装提示,无其他含义
 import traceback
 from tqdm import tqdm
+from tqdm.rich import tqdm as tqdm_rich
 from pygame import mixer
 import socket
 import threading
@@ -17,10 +18,11 @@ import win32api, win32con
 from shutil import rmtree
 from warnings import simplefilter
 ############版本号,每次更新请修改!############
-version = '2.3'
+version = '2.4'
 ############版本号,每次更新请修改!############
+debug = False
 # 更改窗口名称
-os.system("title Super Dos")
+os.system("title SuperDos")
 # 关闭警告
 requests.packages.urllib3.disable_warnings()
 simplefilter("ignore")
@@ -118,11 +120,30 @@ def boot(mode: int = 0, safemode_fix: int = 0):
             print("字符画文件被占用!", e)
         except:
             print("读取字符画出错!")
-        n = random.randint(0, 100)  # 用于生成是否显示virus
-        for i in tqdm(range(100), desc='Booting', unit='kb'):
-            time.sleep(0.08)
-        os.system("cls")
-        time.sleep(0.5)
+        if os.path.isfile('c:\superdos_boot.supersystem'):
+            n = random.randint(11,100)  # 用于生成是否显示virus和彩蛋
+        else:
+            n = random.randint(0, 100)
+        if debug != True:
+            if n >= 90:
+                print("恭喜解锁彩蛋:进度条似乎有点不一样?")
+                process = tqdm_rich(range(100), desc='Booting', unit='kb')
+            else:
+                process = tqdm(range(100), desc='Booting', unit='kb')
+            for i in process:
+                if n <= 10:
+                    time.sleep(0.2)
+                else:
+                    time.sleep(0.08)
+        clear()
+        if n <= 10:
+            print("\r检测到外来未知IP地址25.46.23.255进入,请立即关机!",end='',flush=True)
+            time.sleep(0.7)
+            os.system('color 4F')
+            print('\r潤瑣灹⁥瑨汭㰾瑨汭㰾敨摡㰾敭慴挠慨獲瑥瑵㘱㸢琼瑩敬唾瑮',flush=True)
+        time.sleep(0.3)
+        os.system('color 07')
+        clear()
         # 判断是否为第一次使用，是则执行oobe
         if oobe_status == 'false':
             oobe()
@@ -139,7 +160,7 @@ def boot(mode: int = 0, safemode_fix: int = 0):
             boot_error("unlock status is invaild!")
     except Exception as e:
         boot_flag = True
-        s = str(e)
+        s = repr(e)
     if boot_flag == True:
         boot_error(s)
     if mode == 0:
@@ -253,39 +274,55 @@ def clear():
 # 定义下载文件函数
 def download_file(name, url):
     start = time.time()  # 下载开始时间
+    html_down = False
     headers = {
         'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0"}
     response = requests.get(url, stream=True, headers=headers, verify=False)  # stream=True必须写上
     size = 0  # 初始化已下载大小
     chunk_size = 1024  # 每次下载的数据大小
-    content_size = int(response.headers['content-length'])  # 下载文件总大小
+    try:
+        content_size = int(response.headers['content-length'])  # 下载文件总大小
+    except:
+        html_down = True
     try:
         if response.status_code == 200:  # 判断是否响应成功
-            print('[文件大小]:{size:.2f} MB'.format(
-                size=content_size / chunk_size / 1024))  # 开始下载，显示下载文件大小
-            with open(name, 'wb') as file:  # 显示进度条
-                for data in response.iter_content(chunk_size=chunk_size):
-                    file.write(data)
-                    size += len(data)
-                    print('\r' + '[下载进度]:%s%.2f%%' % (
-                        '>' * int(size * 50 / content_size), float(size / content_size * 100)), end=' ')
+            if html_down == True:
+                with open(name,'wb') as f:
+                    j = 0
+                    for i in response.iter_content(chunk_size=512):
+                        f.write(i)
+                        j += 1
+                        print(f'\r[下载进度]:{">"*j}',end='',flush=True)
+                for i in range(50-j):
+                    print(">",end='')
+                print()
+            else:
+                print('[文件大小]:{size:.2f} MB'.format(
+                    size=content_size / chunk_size / 1024))  # 开始下载，显示下载文件大小
+                with open(name, 'wb') as file:  # 显示进度条
+                    for data in response.iter_content(chunk_size=chunk_size):
+                        file.write(data)
+                        size += len(data)
+                        print('\r' + '[下载进度]:%s%.2f%%' % (
+                            '>' * int(size * 50 / content_size), float(size / content_size * 100)), end=' ', flush=True)
         end = time.time()  # 下载结束时间
         print('完成！用时: %.2f秒' % (end - start))  # 输出下载用时时间
-    except Exception:
-        pass
+    except Exception as e:
+        print()
 
 # 定义引导错误函数
 def boot_error(error_message='NULL'):
     os.system("cls")
     os.system("color 4F")
+    n = '\n'#为了在f-string里使用\n
     print(f"""
 *****************SuperDos Boot Error!*****************
 
 SuperDos发现boot引导存在错误,请尝试恢复系统或联系厂商!
-号码:114-514-1919-18
+号码:114-514-191-918
 ERROR CODE:0x000000005
 Information:{error_message}
-
+{"根据分析错误疑似为系统代码层级错误,请联系作者" if 'Error' in error_message else ''}{n if 'Error' in error_message else ''}
                                  请按Enter以重启...
 
 ******************************************************
@@ -301,8 +338,13 @@ def error(error_message=''):
     global error
     os.system("color 9F")
     clear()
-    with open("log.log", 'a+') as log:
-        log.write(f"[严重错误]\n{error_message}{time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}\n\n")
+    try:
+        with open("log.log", 'a+') as log:
+            log.write(f"[严重错误]\n{error_message}{time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}\n\n")
+    except PermissionError:
+        print("日志写入失败,请检查程序执行目录是否在c盘或者检查日志文件是否关闭被占用!")
+    except Exception as e:
+        print(f"日志写入失败,原因:{repr(e)}")
     clear()
     if rerror == 1:
         print(f'''
@@ -364,7 +406,7 @@ def memoryerror():
 def recovery():
     os.system('color 17')
     for i in range(6):
-        print(f"\rLoading fix.su {'.' * i}", end='')
+        print(f"\rLoading fix.su {'.' * i}", end='', flush=True)
         time.sleep(2)
     os.system('cls')
     print("欢迎进入Recovery模式!")
@@ -458,6 +500,7 @@ def safemode(a=0):
             print("5秒后即将重试...")
             time.sleep(5)
         raise Exception("0x000000003")
+        boot(0)
     print("Loading system....")
     time.sleep(3)
     print("Loading safemode.dll...")
@@ -559,7 +602,7 @@ def start():
     global unlock
     global rerror
     global admin
-    if not unlock:
+    if admin == 'true' and unlock == 'false':
         win32api.RegSetValueEx(reg_key, "admin_status", 0, win32con.REG_SZ, "false")
     os.system(f"color {win32api.RegQueryValueEx(reg_key, 'color')[0]}")
     global key  # 把key变量带入局部变量
@@ -614,7 +657,7 @@ def start():
 	superchat -- 聊天
 	update -- 检查更新
 	check_error -- 获取错误信息''')
-            if unlock == 'true' and admin == 'true':
+            if admin == 'true':
                 print("	admin_write -- 更改程序变量\n	check_work_path -- 获取当前工作目录")
             if n <= 10:
                 print("	virus -- A present for you:)")
@@ -831,7 +874,7 @@ system.sys''')
             elif taskmgr == "command.su":
                 if unlock == "true":
                     print("成功将进程command.su结束，其ID为492")
-                    while 1:
+                    while True:
                         input()
                 else:
                     print("无权限")
@@ -839,11 +882,12 @@ system.sys''')
                 if unlock == "true":
                     print("成功将进程system.sys结束，其ID为502")
                     time.sleep(3)
-                    print("Error:\nsystem.sys is not run\nerror code:0x000000004")
+                    clear()
+                    os.system("color 4F")
+                    print("Error:Something went error!\nERROR CODE:0x000000004")
                     time.sleep(1)
-                    print(
-                        "▄???§▎▂■????▁√×\n???▁??▃▄●○?↑\n↗????↘?????????????\n????????昆斤拷烫烫烫？？\n?？?？???ТПМОNever \ngonn\na give\n you up???▎▁???×??")
-                    time.sleep(0.1)
+                    print("▄???§▎▂■????▁√×\n???▁??▃▄●○?↑\n↗????↘?????????????\n????????昆斤拷烫烫烫？？\n?？?？???ТПМОNever \ngonn\na give\n you up???▎▁???×??")
+                    time.sleep(0.15)
                     exit()
                 else:
                     print("无权限")
@@ -855,27 +899,27 @@ system.sys''')
             if errortest == "1":
                 print("将会在3秒后发生报错...")
                 time.sleep(3)
-                raise TypeError("This is a test error")
+                raise TypeError("This is a test")
             elif errortest == "2":
                 print("将在3秒后发生报错...")
                 time.sleep(3)
-                raise NameError("This is a test error")
+                raise NameError("This is a test")
             elif errortest == "3":
                 print("将在在3秒后发生报错...")
                 time.sleep(3)
-                raise IndentationError("This is a test error")
+                raise IndentationError("This is a test")
             elif errortest == "4":
                 print("将在3秒后发生报错...")
                 time.sleep(3)
-                raise SyntaxError("This is a test error")
+                raise SyntaxError("This is a test")
             elif errortest == "5":
                 print("将在3秒后发生报错...")
                 time.sleep(3)
-                raise ValueError("This is a test error")
+                raise ValueError("This is a test")
             elif errortest == '6':
                 print("将在3秒后发生报错...")
                 time.sleep(3)
-                raise MemoryError("This is a test error")
+                raise MemoryError("This is a test")
             else:
                 raise NameError("LOL")
         elif command == "geturl":
@@ -931,11 +975,9 @@ system.sys''')
             clear()
             status = "0"
             if status == "0":
-                print(
-                    "close:关闭 read:读取 del:删除文件 rename:重命名 return:返回至根目录 up:上一级文件夹 copy:复制 nd:新建文件夹 search:在当前目录搜索文件 help:再次查看命令")
+                print("close:关闭 read:读取 del:删除文件 rename:重命名 return:返回至根目录 up:上一级文件夹 copy:复制 nd:新建文件夹 search:在当前目录搜索文件 jump:跳转指定路径 help:再次查看命令")
             else:
-                print(
-                    "close:关闭 read:读取 del:删除文件 rename:重命名 return:返回至根目录 up:上一级文件夹 paste:粘贴 nd:新建文件夹 search:在当前目录搜索文件 help:再次查看命令")
+                print("close:关闭 read:读取 del:删除文件 rename:重命名 return:返回至根目录 up:上一级文件夹 paste:粘贴 nd:新建文件夹 search:在当前目录搜索文件 jump:跳转指定路径 help:再次查看命令")
             path = os.path.abspath('.')
             while True:
                 clear()
@@ -948,11 +990,17 @@ system.sys''')
                 except:
                     print("读取出错!")
                     list_dir = []
-                for file_type in list_dir:
-                    if os.path.isdir(path + "\\" + file_type):
-                        print(file_type + ' ' * (32 - len(file_type)) + '文件夹')
+                dirs = []
+                files = []
+                for file_name in list_dir:
+                    if os.path.isdir(path + "\\" + file_name):
+                        dirs.append(file_name)
                     else:
-                        print(file_type + ' ' * (32 - len(file_type)) + '文件')
+                        files.append(file_name)
+                for i in dirs:
+                    print(i + ' ' * (32 - len(i)) + '文件夹')
+                for i in files:
+                    print(i + ' ' * (32 - len(i)) + '文件')
                 filecommand = input(path + '\\')
                 if filecommand == 'close':
                     break
@@ -1000,11 +1048,9 @@ system.sys''')
                         clear()
                 elif filecommand == 'help':
                     if status == "0":  # 判断复制状态
-                        print(
-                            "close:关闭 read:读取 del:删除文件 rename:重命名 return:返回至根目录 copy:复制 nd:新建文件夹 search:在当前目录搜索文件 help:再次查看命令")
+                        print("close:关闭 read:读取 del:删除文件 rename:重命名 return:返回至根目录 copy:复制 nd:新建文件夹 search:在当前目录搜索文件 jump:跳转指定路径 help:再次查看命令")
                     else:
-                        print(
-                            "close:关闭 read:读取 del:删除文件 rename:重命名 return:返回至根目录 paste:粘贴 nd:新建文件夹 search:在当前目录搜索文件 help:再次查看命令")
+                        print("close:关闭 read:读取 del:删除文件 rename:重命名 return:返回至根目录 paste:粘贴 nd:新建文件夹 search:在当前目录搜索文件 jump:跳转指定路径 help:再次查看命令")
                     input()
                 elif not filecommand:
                     clear()
@@ -1013,10 +1059,10 @@ system.sys''')
                     path = os.path.abspath('.')
                     continue
                 elif filecommand == "copy":
-                    file = input("file:")
-                    if os.path.exists(path + '\\' + file):
+                    paste_file = input("file:")
+                    if os.path.exists(path + '\\' + paste_file):
                         temp = open(path + '\\' + file, 'rb')
-                        data = temp.read()
+                        paste_data = temp.read()
                         temp.close()
                         status = "1"
                         print("ok")
@@ -1025,8 +1071,8 @@ system.sys''')
                         print("文件不存在")
                 elif filecommand == "paste":
                     if status == "1":
-                        f = open(path + '\\' + file, 'wb')
-                        f.write(data)
+                        f = open(path + '\\' + paste_file, 'wb')
+                        f.write(paste_data)
                         print("ok")
                         input()
                     else:
@@ -1042,15 +1088,34 @@ system.sys''')
                         print("请检查是否名称重复")
                         input()
                 elif filecommand == "search":
-                    files = os.listdir(path)
                     name = input("内容:")
-                    x = 0
-                    for item in files:
-                        if name in item:
-                            x += 1
-                            print("第" + str(x) + "条结果:" + item)
-                    if x == 0:
+                    results = []
+                    search_dir_yet = []
+                    for i in list_dir:
+                        if os.path.isdir(path + '\\' + i):
+                            search_dir_yet.append(os.path.abspath(path + '\\' + i))
+                        else:
+                            if name in i:
+                                results.append(path + '\\' + i)
+                    print(search_dir_yet)
+                    while True:#为了不用递归这种龟速东西...
+                        _search_dir_yet_temp_ = search_dir_yet.copy()#临时变量,保证for循环时原列表不被修改
+                        for j in search_dir_yet:
+                            for x in os.listdir(j):
+                                if os.path.isdir(j+'\\'+x):
+                                    _search_dir_yet_temp_.append(j+'\\'+x)
+                                else:
+                                    if name in x:
+                                        results.append(j+'\\'+x)
+                            _search_dir_yet_temp_.remove(j)
+                        search_dir_yet = _search_dir_yet_temp_.copy()
+                        if search_dir_yet == []:
+                            break
+                    if len(results) == 0:
                         print("无搜索结果")
+                    else:
+                        for i in range(len(results)):
+                            print(f"第{i+1}条结果:{results[i]}")
                     input()
                 elif filecommand == 'up':
                     path = os.path.abspath(path + '\\..\\')
@@ -1223,8 +1288,8 @@ The password is 6230183
                 if password == '6230183':
                     print("解锁成功,恭喜!")
                     time.sleep(5)
-                    jie = open(r"c:\Windows\boot.ini", 'w')
-                    jie.write("error")
+                    jie = open(r"c:\superdos_boot.supersystem", 'w')
+                    jie.write("")
                     clear()
                     break
                 else:
@@ -1264,51 +1329,51 @@ The password is 6230183
         elif command == 'superchat':
             change = input("1.创建房间\n2.加入房间\n")
             if change == '1':
-                try:
-                    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                    server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-                    port = random.randint(2333, 10000)
-                    hostname = socket.gethostname()
-                    ip_address = socket.gethostbyname(hostname)
-                    server.bind((ip_address, port))
-                    print(f"服务器已向{ip_address}:{port}发起连接(仅同个网络下的电脑可连接)(ctrl+c退出)...")
-                    server.listen(1)
-                    clientsocket, address = server.accept()
-                    print("检测到连接:", address)
-                    print("输入close退出")
-                    print("------------聊天------------")
-                    class listen(threading.Thread):
-                        def __init__(self):
-                            threading.Thread.__init__(self)
-                        def run(self):
-                            global flag
-                            while True:
-                                try:
-                                    data = clientsocket.recv(9999).decode('utf-8')
-                                    print('\n对方:' + data)
-                                except:
-                                    break
-                    a = listen()
-                    a.start()
-                    while True:
-                        try:
-                            data = input("You:")
-                            if data == 'close':
-                                clientsocket.close()
+                server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                port = random.randint(2333, 10000)
+                hostname = socket.gethostname()
+                ip_address = socket.gethostbyname(hostname)
+                server.bind((ip_address, port))
+                print(f"服务器已向{ip_address}:{port}发起连接(仅同个网络下的电脑可连接)...")
+                server.listen(1)
+                clientsocket, address = server.accept()
+                print("检测到连接:", address)
+                print("输入close退出")
+                print("------------聊天------------")
+
+                class listen(threading.Thread):
+                    def __init__(self):
+                        threading.Thread.__init__(self)
+
+                    def run(self):
+                        global flag
+                        while True:
+                            try:
+                                data = clientsocket.recv(9999).decode('utf-8')
+                                print('\n对方:' + data)
+                            except:
                                 break
-                            else:
-                                clientsocket.send(data.encode('utf-8'))
-                        except:
-                            print("对方已断开连接")
+
+                a = listen()
+                a.start()
+                while True:
+                    try:
+                        data = input("You:")
+                        if data == 'close':
+                            clientsocket.close()
                             break
-                except KeyboardInterrupt:
-                    pass
+                        else:
+                            clientsocket.send(data.encode('utf-8'))
+                    except:
+                        print("对方已断开连接")
+                        break
             elif change == '2':
+                ip = input("输入ip:")
+                port = int(input("输入端口:"))
+                print("connecting...")
+                client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 try:
-                    ip = input("输入ip:")
-                    port = int(input("输入端口:"))
-                    print("connecting...")
-                    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     client.connect((f'{ip}', port))
                 except:
                     print('连接失败')
@@ -1316,17 +1381,17 @@ The password is 6230183
                     print("连接成功")
                     print('输入close退出')
                     print("------------聊天------------")
-
                     class listen(threading.Thread):
                         def __init__(self):
                             threading.Thread.__init__(self)
                         def run(self):
                             while True:
                                 try:
-                                    data = client.recv(114514).decode('utf-8')
+                                    data = client.recv(9999).decode('utf-8')
                                     print('\n对方:' + data)
                                 except:
                                     break
+
                     a = listen()
                     a.start()
                     while True:
@@ -1340,7 +1405,7 @@ The password is 6230183
                         except:
                             print("对方已断开连接")
                             break
-        elif command == 'admin_write' and unlock == 'true' and admin == 'true':
+        elif command == 'admin_write' and admin == 'true' and unlock == 'true':
             change = input('注意！前方为开发者区域，随意修改很可能导致崩溃！！！(y/n):')
             if change == 'y':
                 print('输入exit退出')
@@ -1398,8 +1463,7 @@ The password is 6230183
                 if len(error_messages) <= 0:
                     print("暂无错误信息!")
                 else:
-                    print(
-                        f"你总共有{len(error_messages)}条错误,请输入需要获取的信息(从久远到最新,如需要最新的错误信息输入-1;如需获取全部输入-2)")
+                    print(f"你总共有{len(error_messages)}条错误,请输入需要获取的信息(从久远到最新,如需要最新的错误信息输入-1;如需获取全部输入-2)")
                     try:
                         a = int(input())
                         if a == -1:
@@ -1412,9 +1476,23 @@ The password is 6230183
                         print("请输入有效的序号!")
             else:
                 print("暂无错误信息!")
-        elif command == 'check_work_path' and admin == 'true':
+        elif command == 'check_work_path' and admin == 'true' and unlock == 'true':
             print(f'当前工作目录:{os.getcwd()}')
             print(f'程序执行目录:{sys.executable}')
+        elif command == 'all_system_info' and admin == 'true' and unlock == 'true':
+            print(f"""
+    系统名称:SuperDos
+    系统版本:{version}
+    激活状态:已激活
+    CPU:antel s9 10002K
+    GPU:stx 4090ti
+    解锁状态:Unlocked
+    admin状态:true
+    系统密钥:{key}
+    safemode开放状态:{opensafe}
+    作者:sun589
+    (你都能看到这了,估计大部分功能都看完了-_-)
+""")
         else:
             for i in functions:  # 遍历功能列表
                 same_c = 0
@@ -1427,7 +1505,7 @@ The password is 6230183
             else:
                 same = ''
             print("未知命令,请用help查看", end='')
-            if same != '':
+            if same != '' and len(same) - 2 < len(command) < len(same) + 2:
                 print(f",请问你是否在指{same}?")
             else:
                 print()
