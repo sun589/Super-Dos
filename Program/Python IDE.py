@@ -33,8 +33,7 @@ else:
           lines += 1
       code.seek(0, 0)
       _ = code.readlines()
-      print(_)
-      if '#!no_help_hint' not in _:
+      if not ('#!no_help_hint' in _ or '#!no_help_hint\n' in _):
           print("输入:help查看功能列表(如不想显示请在代码开头加上\"#!no_help_hint\")")
       if lines > 0:
           code.seek(0, 0)
