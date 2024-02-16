@@ -28,6 +28,7 @@ while True:
         print(f"Admin状态:{admin}")
         print(f"System解锁状态:{unlock}")
         print(f"Debug状态:{debug}")
+        input()
     elif choose == '2':
         if admin == 'true' and unlock == 'true':
             print("您的系统无需破解!")
