@@ -8,8 +8,22 @@ if input("是否进行扫描?(y/n):") == 'y':
         print(f"\r正在扫描0x{str(x).rjust(7, '0')}",end='',flush=True)
         time.sleep(0.00001)
         x += 3
-    print()
+    dangerous_files = []
+    if os.path.isdir("Program"):
+        for i in os.listdir('.\\Program\\'):
+            print(f"\r正在扫描{i}...",end='',flush=True)
+            if '.' not in i and os.path.isfile(f'.\\Program\\{i}'):
+                with open(f".\\Program\\{i}") as f:
+                    if '#Super_Dos_software' not in f.read():
+                        dangerous_files.append(i)
     if n <= 10:
+        if dangerous_files != []:
+            if input(f"检测到{len(dangerous_files)}个非法软件,是否处理?(y/n):") == 'y':
+                print("删除中...")
+                for i in dangerous_files:
+                    if os.path.isfile(f'.\\Program\\{i}'):
+                        os.remove(f'.\\Program\\{i}')
+                print("删除成功!")
         if input("检测到编号Ruvis-WaHjkP病毒,是否立即清除?(y/n):") == 'y':
             print("修复中...")
             time.sleep(5)
