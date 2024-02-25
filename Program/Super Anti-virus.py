@@ -16,14 +16,15 @@ if input("是否进行扫描?(y/n):") == 'y':
                 with open(f".\\Program\\{i}") as f:
                     if '#Super_Dos_software' not in f.read():
                         dangerous_files.append(i)
+        print()
+    if dangerous_files != []:
+        if input(f"检测到{len(dangerous_files)}个非法软件,是否处理?(y/n):") == 'y':
+            print("删除中...")
+            for i in dangerous_files:
+                if os.path.isfile(f'.\\Program\\{i}'):
+                    os.remove(f'.\\Program\\{i}')
+            print("删除成功!")
     if n <= 10:
-        if dangerous_files != []:
-            if input(f"检测到{len(dangerous_files)}个非法软件,是否处理?(y/n):") == 'y':
-                print("删除中...")
-                for i in dangerous_files:
-                    if os.path.isfile(f'.\\Program\\{i}'):
-                        os.remove(f'.\\Program\\{i}')
-                print("删除成功!")
         if input("检测到编号Ruvis-WaHjkP病毒,是否立即清除?(y/n):") == 'y':
             print("修复中...")
             time.sleep(5)
@@ -31,6 +32,6 @@ if input("是否进行扫描?(y/n):") == 'y':
             with open(r"c:\superdos_boot.supersystem",'w') as f:
                 f.write('')
             print("已修复并安装防攻击补丁,请重启应用更新!")
-    else:
+    if n > 10 and dangerous_files == []:
         print("未发现任何病毒!")
     input()
