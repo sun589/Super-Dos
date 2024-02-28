@@ -11,11 +11,15 @@ if input("是否进行扫描?(y/n):") == 'y':
     dangerous_files = []
     if os.path.isdir("Program"):
         for i in os.listdir('.\\Program\\'):
-            print(f"\r正在扫描{i}...",end='',flush=True)
+            print(f"\r正在扫描{i}",end='',flush=True)
             if '.' not in i and os.path.isfile(f'.\\Program\\{i}'):
                 with open(f".\\Program\\{i}") as f:
-                    if '#Super_Dos_software' not in f.read():
+                    try:
+                        if '#Super_Dos_software' not in base64.b64decode(f.read()).decode("utf-8"):
+                            dangerous_files.append(i)
+                    except:
                         dangerous_files.append(i)
+        clear()
         print()
     if dangerous_files != []:
         if input(f"检测到{len(dangerous_files)}个非法软件,是否处理?(y/n):") == 'y':
