@@ -19,6 +19,7 @@ if input("是否进行扫描?(y/n):") == 'y':
                             dangerous_files.append(i)
                     except:
                         dangerous_files.append(i)
+            time.sleep(0.01)
         clear()
     if dangerous_files != []:
         if input(f"检测到{len(dangerous_files)}个非法软件,是否处理?(y/n):") == 'y':
