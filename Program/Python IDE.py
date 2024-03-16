@@ -26,7 +26,7 @@ else:
   line = -1
   while True:
       clear()
-      code = open(f".\\py\\{py_file}", 'a+')
+      code = open(f".\\py\\{py_file}", 'a+', encoding='utf-8')
       lines = 0
       code.seek(0, 0)
       for i in code:
