@@ -25,7 +25,7 @@ from rich.syntax import Syntax
 ############版本号,每次更新请修改!############
 version = '2.6'
 ############版本号,每次更新请修改!############
-debug = True
+debug = False
 # 更改窗口名称
 os.system("title SuperDos")
 # 关闭警告
