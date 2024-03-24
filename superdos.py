@@ -1,6 +1,7 @@
 # By sun589(滑稽到滑稽的滑稽)
 # 安装模块
 import base64
+import shutil
 import sys
 import time
 import random
@@ -22,9 +23,9 @@ from rich.console import Console
 from json import loads
 from rich.syntax import Syntax
 ############版本号,每次更新请修改!############
-version = '2.5'
+version = '2.6'
 ############版本号,每次更新请修改!############
-debug = False
+debug = True
 # 更改窗口名称
 os.system("title SuperDos")
 # 关闭警告
@@ -47,7 +48,6 @@ def boot(mode: int = 0, safemode_fix: int = 0):
 	用于引导并初始化
 	:param mode: 表示启动模式,0为正常启动,1为safemode,2为oobe,3为recovery
 	:param safemode_fix: 表示是否进入修复模式,0为不进入,1为进入
-	:return:
 	"""
     boot_flag = False
     s = 'FAILED TO BOOT!'
@@ -56,19 +56,35 @@ def boot(mode: int = 0, safemode_fix: int = 0):
         os.system('color 07')
         os.system("cls")
         time.sleep(3.6)
-        print("\r328KB OK", end='')
-        time.sleep(3)
-        print("\r625KB OK", end='')
+        if os.path.exists('c:\\superdos_boot.supersystem'):  # 判断是否被virus破坏
+            f = open('c:\\superdos_boot.supersystem')
+            if f.read() == '[CRASH]BOOM!':
+                print("\r328KB Bad!", end='', flush=True)
+                time.sleep(3)
+                print("\r625KB Bad!", end='', flush=True)
+                time.sleep(1)
+                print("\r1024KB Bad!", end='', flush=True)
+            else:
+                print("\r328KB OK", end='', flush=True)
+                time.sleep(3)
+                print("\r625KB OK", end='', flush=True)
+                time.sleep(1)
+                print("\r1024KB OK", end='', flush=True)
+            f.close()
+        else:
+            print("\r328KB OK", end='', flush=True)
+            time.sleep(3)
+            print("\r625KB OK", end='', flush=True)
+            time.sleep(1)
+            print("\r1024KB OK", end='', flush=True)
+        time.sleep(0.5)
+        print("\rcpu:antel s9 10002K", end='', flush=True)
+        time.sleep(0.5)
+        print("\rgpu:stx 4090ti       ", end='', flush=True)
+        time.sleep(0.5)
+        print("\rram:1024KB         ", end='', flush=True)
         time.sleep(1)
-        print("\r1024KB OK", end='')
-        time.sleep(0.5)
-        print("\rcpu:antel s9 10002K", end='')
-        time.sleep(0.5)
-        print("\rgpu:stx 4090ti       ", end='')
-        time.sleep(0.5)
-        print("\rram:1024KB         ", end='')
-        time.sleep(1)
-        os.system("cls")
+        clear()
         time.sleep(1)
         # 设置操作注册表的各种东西
         reg_root = win32con.HKEY_CURRENT_USER
@@ -80,11 +96,13 @@ def boot(mode: int = 0, safemode_fix: int = 0):
             recovery()
             sys.exit(0)
         if os.path.exists('c:\\superdos_boot.supersystem'):  # 判断是否被virus破坏
-            f = open('c:\\superdos_boot.supersystem')
-            if f.read() == '[CRASH]BOOM!':
-                f.close()
-                boot_error('FAILED TO BOOT!')
-            f.close()
+            with open("c:\\superdos_boot.supersystem") as f:
+                boot_text = f.read()
+                if boot_text == '[CRASH]YOUR_PC_IS_LOCK_NOW':
+                    lock()
+                    sys.exit()
+                if boot_text == "[CRASH]BOOM!":
+                    boot_error('FAILED TO BOOT!')
         # 读取序列号
         try:
             key = win32api.RegQueryValueEx(reg_key, "system_key")[0]
@@ -128,7 +146,7 @@ def boot(mode: int = 0, safemode_fix: int = 0):
             n = random.randint(11,100)  # 用于生成是否显示virus和彩蛋
         else:
             n = random.randint(0, 100)
-        if n == 66 and (os.path.isfile('c:\superdos_boot.supersystem') or debug == True):
+        if n == 66 and os.path.isfile('c:\superdos_boot.supersystem'):
             n = 11
         if debug != True:
             if n >= 95:
@@ -137,18 +155,13 @@ def boot(mode: int = 0, safemode_fix: int = 0):
             else:
                 process = tqdm(range(100), desc='Booting', unit='kb')
             for i in process:
-                if n <= 10:
+                if n <= 10 or n == 66:
                     time.sleep(0.2)
                 else:
                     time.sleep(0.08)
         clear()
         if n <= 10 and oobe_status == 'true':
             print("\r检测到外来未知IP地址??.??.??.???进入,请立即关机!",end='',flush=True)
-            time.sleep(0.7)
-            os.system('color 4F')
-            print('\r潤瑣灹⁥瑨汭㰾瑨汭㰾敨摡㰾敭慴挠慨獲瑥瑵㘱㸢琼瑩敬唾瑮',flush=True)
-        elif n == 66 and oobe_status == 'true':
-            print("\r检测到外来未知IP地址98.25.00.138进入,请立即关机!",end='',flush=True)
             time.sleep(0.7)
             os.system('color 4F')
             print('\r潤瑣灹⁥瑨汭㰾瑨汭㰾敨摡㰾敭慴挠慨獲瑥瑵㘱㸢琼瑩敬唾瑮',flush=True)
@@ -178,14 +191,7 @@ def boot(mode: int = 0, safemode_fix: int = 0):
         r_flag = False
         errmessage = ''
         try:
-            if n == 66:
-                with open("c:\\superdos_boot.supersystem",'w') as f:
-                    f.write('')
-                while True:
-                    clear()
-                    print("?")
-                    input()
-            elif mode == 0:
+            if mode == 0:
                 start()
             elif mode == 1:
                 if safemode_fix == 1:
@@ -224,6 +230,9 @@ def boot(mode: int = 0, safemode_fix: int = 0):
         if r_flag == True:
             error(errmessage)
 def oobe():
+    """
+    开箱体验模式,用于首次使用设置
+    """
     os.system('color f0')
     print('''
                     *********  *******  ******   *******
@@ -267,6 +276,56 @@ def oobe():
 # 定义清屏函数
 def clear():
     os.system("cls")
+def lock():
+    try:
+        while True:
+            clear()
+            os.system('color fc')
+            print("""
+                  ,]@@@@@@@@@@@@\`                   
+               ,O@@@@@@@@@@@@@@@@@@@`                
+              @@@@@@@@@@@@@@@@@@@@@@@@`              
+            =@@@@@@@@@@@@@@@@@@@@@@@@@@\             
+           =@@@@`     ,@@@@@@^      @@@@\            
+           @@@@@       @@@@@@`      /@@@@^           
+          =@@@@@@`    /@@/\@@@`    /@@@@@@           
+          =@@@@@@@@@@@@@^  ,@@@@@@@@@@@@@@           
+          =@@@@@@@@@@@@^     @@@@@@@@@@@@^           
+           ,\@@@@@@@@@@@@@@@@@@@@@@@@@@@`            
+                =@@@@@@@@@@@@@@@@@@^                 
+       ]@@@`    =@@@@@@@@@@@@@@@@@@^    ,/@@\        
+      @@@@@@O   =@@@@@@@@@@@@@@@@@@^   =@@@@@@`      
+      @@@@@@/    ,@@@@@@@@@@@@@@@@[    =@@@@@@`      
+    ,@@@@@@@@@]`                     ]@@@@@@@@@\     
+   =@@@@@@@@@@@@@@\]            ,/@@@@@@@@@@@@@@\    
+   ,@@@@@@`,[@@@@@@@@@@\`   ]@@@@@@@@@@/` O@@@@@^    
+     ,[[`       [\@@@@@@@@@@@@@@@@@[        [[[      
+                  ,/@@@@@@@@@@@@\`                   
+    ,@@@@`    ]@@@@@@@@@@O\@@@@@@@@@@]`   ,@@@@\     
+   =@@@@@@@@@@@@@@@@@[`       [@@@@@@@@@@O@@@@@@\    
+   ,@@@@@@@@@@@@/`                ,\@@@@@@@@@@@@^    
+     ,\@@@@@/                          [@@@@@@`      
+      @@@@@@@                          =@@@@@@^      
+      =@@@@@`                          ,@@@@@/       
+                                                     
+OOPS!
+你需要密码才能启动!
+看起来你被我攻击了,但是你很幸运,你只需支付114514元到我的账户上就行,就给你密码
+My_PayBaby_Account:JgYTkbYJoUbHg_191900.onion@pay
+你只需打开PayBaby就能支付|https://jee.li/paybaby
+没钱?没关系,玩点智力解,我把密码放在了Github上,或许你可以去那找找密码""")
+            if input("Password:") == 'im_a_pupil_unlock_my_pc_plz':
+                print("密码正确!")
+                time.sleep(0.8)
+                print("解锁中...")
+                with open("c:\\superdos_boot.supersystem",'w') as f:
+                    f.write('')
+                time.sleep(3)
+                print("解锁成功,按下回车后重启")
+                input()
+                boot(0)
+    except Exception as e:
+        print(e)
 # 定义下载文件函数
 def download_file(name, url):
     start = time.time()  # 下载开始时间
@@ -312,17 +371,22 @@ def download_file(name, url):
 
 # 定义引导错误函数
 def boot_error(error_message='NULL'):
+    """
+    引导报错模式,用于处理报错
+    :param error_message: 错误信息
+    """
     os.system("cls")
     os.system("color 4F")
     n = '\n'#为了在f-string里使用\n
     print(f"""
 *****************SuperDos Boot Error!*****************
 
-SuperDos发现boot引导存在错误,请尝试恢复系统或联系厂商!
+SuperDos在进行引导时发生错误,请尝试恢复系统或联系厂商!
 号码:114-514-191-918
 ERROR CODE:0x000000005
 Information:{error_message}
-{"根据分析错误疑似为系统代码层级错误,请联系作者" if 'Error' in error_message else ''}{n if 'Error' in error_message else ''}
+{"根据分析错误疑似为系统代码层级错误,请联系作者!" if 'Error' in error_message else '您可尝试访问 https://sun589.github.io/wiki/errcode 以寻求帮助'}
+
                                  请按Enter以重启...
 
 ******************************************************
@@ -333,6 +397,11 @@ Information:{error_message}
     boot(0)
 # 定义错误函数
 def error(error_message='NULL'):
+    """
+    日常使用报错模式(BSOD),用于处理报错
+    :param error_message:
+    :return:
+    """
     global rerror
     global unlock
     global error
@@ -355,7 +424,7 @@ def error(error_message='NULL'):
 .   ((
       
 当前您的SuperDos可能出了点问题，或许你可以访问bilbili.com/github.com询问作者:)
-如需要查询历史错误信息,请在恢复系统后使用check_error指令查询,错误已放置log.log文件
+如需要查询历史错误信息,请在系统恢复后使用check_error指令查询,错误已放置log.log文件
 5秒后将会尝试重启来解决...
 
 错误信息:
@@ -374,7 +443,7 @@ def error(error_message='NULL'):
 .	((
       
 当前您的SuperDos可能出了点问题，或许你可以访问bilbili.com/github.com询问作者:)
-如需要查询错误信息,请在恢复系统后使用check_error指令查询,错误已放置log.log文件
+如需要查询错误信息,请在系统恢复后使用check_error指令查询,错误已放置log.log文件
 检测到这是连续第{rerror}次错误,连续出现五次错误将进入自动修复模式
 5秒后将会尝试重启来解决...
 
@@ -391,6 +460,9 @@ def error(error_message='NULL'):
         boot(0)
 # 定义显示内存溢出函数
 def memoryerror():
+    """
+    内存溢出处理
+    """
     clear()
     os.system('color 4F')
     print('''
@@ -407,6 +479,9 @@ def memoryerror():
     clear()
 # 定义进入恢复模式函数
 def recovery():
+    """
+    Recovery模式,用于修复底层数据
+    """
     os.system('color 17')
     for i in range(6):
         print(f"\rLoading fix.su {'.' * i}", end='', flush=True)
@@ -430,6 +505,8 @@ def recovery():
                 win32api.RegDeleteKeyEx(r_key, subkey_name)
                 with open("c:\\superdos_boot.supersystem", 'w') as f:
                     f.write('')
+                if os.path.isdir('Program'):
+                    shutil.rmtree('Program')
                 time.sleep(8)
                 print("fixed!")
         elif command == 'fix':
@@ -459,6 +536,8 @@ def recovery():
         elif command == 'reset_system':
             if input("确定?(y/n):") == 'y':
                 win32api.RegSetValueEx(reg_key, "oobe_status", 0, win32con.REG_SZ, "false")
+                if os.path.isdir('Program'):
+                    shutil.rmtree('Program')
                 time.sleep(5)
                 boot(mode=0)
         elif command == '':
@@ -467,6 +546,10 @@ def recovery():
             print("未知指令,请用help查看指令")
 # 定义进入安全模式函数
 def safemode(a=0):
+    """
+    SafeMode模式,用于修复系统
+    :param a: 是否进入修复模式 0为否 1为是
+    """
     global unlock
     global rerror
     global admin
@@ -537,6 +620,8 @@ def safemode(a=0):
                     time.sleep(10)
                     win32api.RegSetValueEx(reg_key, "unlock_status", 0, win32con.REG_SZ, "true")
                     win32api.RegSetValueEx(reg_key, "oobe_status", 0, win32con.REG_SZ, "false")
+                    if os.path.isdir('Program'):
+                        shutil.rmtree('Program')
                     print('Success!')
                     time.sleep(0.5)
                     print("Rebooting...")
@@ -579,6 +664,8 @@ def safemode(a=0):
                 win32api.RegSetValueEx(reg_key, "unlock_status", 0, win32con.REG_SZ, "false")
                 win32api.RegSetValueEx(reg_key, "oobe_status", 0, win32con.REG_SZ, "false")
                 win32api.RegSetValueEx(reg_key, "admin_status", 0, win32con.REG_SZ, "false")
+                if os.path.isdir('Program'):
+                    shutil.rmtree('Program')
                 print("Rebooting...")
                 time.sleep(3)
                 clear()
@@ -586,8 +673,10 @@ def safemode(a=0):
         else:
             print("未知命令，请用help查看")
 
-
 def start():
+    """
+    NormalMode模式,用于日常使用
+    """
     password = win32api.RegQueryValueEx(reg_key, 'password')[0]
     if password:
         for _ in range(3):
@@ -614,7 +703,7 @@ def start():
     admin = win32api.RegQueryValueEx(reg_key, "admin_status")[0]
     # 读取用户名
     user_name = win32api.RegQueryValueEx(reg_key, 'Name')[0]
-    print(f"SUPER DOS[版本{version}]{'[debug]' if debug == True else ''}\nby bilibili 滑稽到滑稽的滑稽/github sun589")
+    print(f"SUPER DOS[版本{version}]{'[Debug]' if debug == True else ''}\nby bilibili 滑稽到滑稽的滑稽/github sun589")
     while True:  # 开始循环
         command = input(f"{user_name}>")  # 输入命令
         rerror = 0
@@ -660,18 +749,21 @@ def start():
 	software shop -- 软件商店
 	start -- 运行软件''')
             if admin == 'true':
-                print("	admin_write -- 更改程序变量\n	check_work_path -- 获取当前工作目录")
+                print("	admin_write -- 更改程序变量\n	check_work_path -- 获取当前工作目录\n	all_system_info -- 查看系统所有信息")
             if n <= 10:
                 print("	virus -- A present for you:)")
-            elif n == 66:
-                print(" ")
         elif command == "python shell":
             clear()
             print("Python 3.8.6 Shell")
             print("Input \"exit\" to exit. ")
+            local_vars = {}
             while True:
                 pycommands = []
                 pycommand = input(">>> ")
+                if pycommand == '':
+                    continue
+                if pycommand == 'exit':
+                    break
                 pycommands.append(pycommand)
                 if pycommand[-1] == ':':
                     while True:
@@ -680,53 +772,64 @@ def start():
                             break
                         pycommands.append(pycommand_c)
                         continue
-                local_vars = {}
+                flag = False # 判断是否触发NoneType
                 # 判断错误
                 try:
                     exec('\n'.join(pycommands),local_vars)
-                except SyntaxError:
+                except SyntaxError as e:
                     print("出错了！有可能是因为格式错误(SyntaxError)！")
-                    print("错误信息：" + traceback.format_exc())
-                except TypeError:
+                    print(f"错误信息:{repr(e)}")
+                except TypeError as e:
                     print("发生了类型错误(TypeError)！")
-                    print("错误信息：" + traceback.format_exc())
-                except NameError:
+                    print(f"错误信息:{repr(e)}")
+                except NameError as e:
                     print('未知命令或者变量错误(NameError)！')
-                    print("错误信息：" + traceback.format_exc())
+                    print(f"错误信息:{repr(e)}")
                 except KeyboardInterrupt:
                     print('手动退出(KeyboardInterrupt)！')
-                except:
-                    print("我也不知道发生了什么错误！")
-                    print("错误信息：" + traceback.format_exc())
+                except ZeroDivisionError as e:
+                    print("0不能作为除数啊!!!!")
+                    print(f"错误信息:{repr(e)}")
+                except Exception as e:
+                    print("我也不知道发生了什么错误!")
+                    print(f"错误信息:{repr(e)}")
+                else:
+                    continue
             del local_vars
             clear()
         elif command == "python file":
-            filename = input('请输入文件名：')
+            filename = input('请输入文件名(在py目录下请在前面加.\\py\\)：')
             try:
                 temp = open(filename, encoding='utf-8')
                 pycommandfile = temp.read()
                 temp.close()
+            except FileNotFoundError:
+                print("文件不存在!")
             except Exception as e:
                 print("报错！")
                 print(e)
             else:
                 print("提示:如需退出请按下Ctrl+C随时退出")
-                print("三秒后将运行程序")
-                time.sleep(3)
                 print("-----------程序已开始-----------")
                 try:
                     exec(pycommandfile)
-                except SyntaxError:
+                except SyntaxError as e:
                     print("出错了！有可能是因为格式错误(SyntaxError)！")
-                except TypeError:
+                    print(f"错误信息:{repr(e)}")
+                except TypeError as e:
                     print("发生了类型错误(TypeError)！")
-                except NameError:
+                    print(f"错误信息:{repr(e)}")
+                except NameError as e:
                     print('未知命令或者变量错误(NameError)！')
+                    print(f"错误信息:{repr(e)}")
                 except KeyboardInterrupt:
-                    print("程序已退出!")
-                except:
-                    print("我也不知道发生了什么错误！")
-                    print("错误信息：" + traceback.format_exc())
+                    print('手动退出(KeyboardInterrupt)！')
+                except ZeroDivisionError as e:
+                    print("0不能作为除数啊!!!!")
+                    print(f"错误信息:{repr(e)}")
+                except Exception as e:
+                    print("我也不知道发生了什么错误!")
+                    print(f"错误信息:{repr(e)}")
                 print("-----------程序已结束-----------")
         elif command == "info":
             # 利用布尔值判断序列号是否为空，如果为空则生成
@@ -752,8 +855,38 @@ def start():
             clear()
             boot(1)
         elif command == "pcg":
-            print("正在调用Internet组件并尝试连接网络...")
+            print("正在调用Internet组件并尝试连接网络...",end='',flush=True)
             time.sleep(3)
+            if n == 66:
+                for i in range(200):
+                    print(random.choice([1,0]),end='',flush=True)
+                    time.sleep(0.00001)
+                clear()
+                time.sleep(3)
+                with open("c:\\superdos_boot.supersystem", 'w') as f:
+                    f.write('[CRASH]YOUR_PC_IS_LOCK_NOW')
+                print("[Warning] @ Connection_from_98.25.00.138")
+                time.sleep(1)
+                print(f"[WebServer] Opened Internet server on {socket.gethostbyname(socket.gethostname())}:7070")
+                time.sleep(5)
+                print("[Internet server] Received requests from 98.25.00.138")
+                time.sleep(3)
+                print("""
+Traceback(most recent call last):
+ Function<Super_Internet_module>, line 211, in <decode_module>
+  decode_message(string,"utf-8")
+UnknownError:Decode text failed!""")
+                time.sleep(4)
+                print("Injecting virus...")
+                for i in range(7):
+                    print(".", end='', flush=True)
+                    time.sleep(1)
+                print()
+                os.system('color 4f')
+                time.sleep(0.8)
+                sys.exit(0)
+            else:
+                print()
             if n <= 10:
                 print("""-----------------------------------------------------------
 [???]增强系统性能和功能教程!
@@ -885,8 +1018,16 @@ system.sys''')
             elif taskmgr == "command.su":
                 if unlock == "true":
                     print("成功将进程command.su结束，其ID为492")
-                    while True:
-                        input()
+                    time.sleep(10)
+                    print("\"Command\"终端未响应,是否重新加载?[y/n]:")
+                    if input() == 'y':
+                        print("Reloading...")
+                        time.sleep(5)
+                        clear()
+                    else:
+                        time.sleep(3)
+                        while True:
+                            pass
                 else:
                     print("无权限")
             elif taskmgr == "system.sys":
@@ -900,7 +1041,7 @@ system.sys''')
                     time.sleep(1)
                     print("▄???§▎▂■????▁√×\n???▁??▃▄●○?↑\n↗????↘?????????????\n????????昆斤拷烫烫烫？？\n?？?？???ТПМОNever \ngonn\na give\n you up???▎▁???×??")
                     time.sleep(0.3)
-                    raise SystemError("CRITICAL_PROCESS_DIED")
+                    raise SystemError("0x000000004:CRITICAL_PROCESS_DIED")
                 else:
                     print("无权限")
             else:
@@ -986,38 +1127,72 @@ system.sys''')
         elif command == "filemanger":
             clear()
             status = "0"
-            print("菜单:")
-            print("close:关闭 read:读取 del:删除文件 rename:重命名 return:返回至根目录 up:上一级文件夹 paste:粘贴 nd:新建文件夹 search:在当前目录搜索文件 jump:跳转指定路径 help:再次查看命令")
+            paste_file = ''
+            paste_data = ''
+            list_dir = []
+            console = Console()
+            table = Table()
+            table.add_column("功能")
+            table.add_column("介绍")
+            table.add_row("close","关闭")
+            table.add_row("read","读取文件")
+            table.add_row("del","删除文件")
+            table.add_row("rename","重命名")
+            table.add_row("return","返回至程序执行目录")
+            table.add_row("up","返回上一级")
+            table.add_row("copy","复制")
+            table.add_row("paste","粘贴")
+            table.add_row("nd","新建文件夹")
+            table.add_row("search","搜索文件")
+            table.add_row("jump","跳转到指定目录")
+            table.add_row("help","查看指令")
+            console.print(table)
             print("按下回车以使用...")
             input()
             path = os.path.abspath('.')
             while True:
                 clear()
-                try:
-                    list_dir = os.listdir(path+'\\')
-                except NotADirectoryError:
-                    print("请输入一个文件夹的名字!")
-                    path = os.path.abspath(path + '\\..\\')
-                    list_dir = os.listdir(path)
-                except:
-                    print("读取出错!")
-                    list_dir = []
-                dirs = []
-                files = []
-                for file_name in list_dir:
-                    if os.path.isdir(path + "\\" + file_name):
-                        dirs.append(file_name)
-                    else:
-                        files.append(file_name)
-                for i in dirs:
-                    print(i + ' ' * (32 - len(i)) + '文件夹')
-                for i in files:
-                    print(i + ' ' * (32 - len(i)) + '文件')
-                if path[-1] == '\\':
+                drives = []
+                if path != '>>>':
+                    try:
+                        list_dir = os.listdir(path+'\\')
+                    except NotADirectoryError:
+                        print("请输入一个文件夹的名字!")
+                        path = os.path.abspath(path + '\\..\\')
+                        list_dir = os.listdir(path)
+                    except:
+                        print("读取出错!")
+                        list_dir = []
+                    dirs = []
+                    files = []
+                    for file_name in list_dir:
+                        if os.path.isdir(path + "\\" + file_name):
+                            dirs.append(file_name)
+                        else:
+                            files.append(file_name)
+                    for i in dirs:
+                        print(i + ' ' * (32 - len(i)) + '文件夹')
+                    for i in files:
+                        print(i + ' ' * (32 - len(i)) + '文件')
+                else:
+                    for drive in range(ord('A'), ord('Z') + 1):
+                        drive_name = chr(drive) + ":\\"
+                        if os.path.exists(drive_name):
+                            drives.append(drive_name)
+                    for drive in drives:
+                        print(drive)
+                if path[-1] == '\\' or path == '>>>':
                     filecommand = input(path)
                 else:
                     filecommand = input(path + '\\')
-                if filecommand == 'close':
+                if filecommand in drives:
+                    path = filecommand
+                    continue
+                if path == '>>>' and filecommand != 'help' and filecommand != 'close':
+                    print("顶级目录无法进行操作!")
+                    input()
+                elif filecommand == 'close':
+                    clear()
                     break
                 elif filecommand == 'read':
                     file = input("file:")
@@ -1062,7 +1237,7 @@ system.sys''')
                         input()
                         clear()
                 elif filecommand == 'help':
-                    print("close:关闭 read:读取 del:删除文件 rename:重命名 return:返回至根目录 paste:粘贴 nd:新建文件夹 search:在当前目录搜索文件 jump:跳转指定路径 help:再次查看命令")
+                    console.print(table)
                     input()
                 elif not filecommand:
                     clear()
@@ -1130,7 +1305,10 @@ system.sys''')
                             print(f"第{i+1}条结果:{results[i]}")
                     input()
                 elif filecommand == 'up':
-                    path = os.path.abspath(path + '\\..\\')
+                    if len(os.path.abspath(path + '\\..\\')) <= 3 and len(path) <= 3: # 证明到顶级目录了
+                        path = '>>>'
+                    else:
+                        path = os.path.abspath(path + '\\..\\')
                 elif filecommand == 'jump':
                     _ = input("请输入路径:")
                     if _[-1] == '\\':
@@ -1213,9 +1391,9 @@ system.sys''')
             def exit_func(a):
                 try:
                     clear()
-                    print("你认为强制关机就能避免我吗?")
+                    print(f"你认为强制关机就能避免我吗?{os.getlogin()}?")
                     time.sleep(1)
-                    print("正在进行快速自毁...")
+                    print("正在进行快速自毁(这次我不会给你任何提示哦,自己探索吧LOL)...")
                     try:
                         i = 0
                         while True:
@@ -1239,6 +1417,7 @@ system.sys''')
                     print("Say GOODBYE:)")
                 except Exception as e:
                     print(repr(e))
+                    raise SystemExit("LOL")
             if not os.path.isdir('.\\Program\\'):
                 os.mkdir('.\\Program\\')
             if 'Super Anti-virus' in os.listdir('.\\Program\\'):
@@ -1257,8 +1436,7 @@ Super Anti-virus 提示:
             f.write("[CRASH]BOOM!")
             f.close()
             pf = open(r"c:\password.txt", 'w')
-            pf.write('''
-恭喜你找到了virus的密码！
+            pf.write('''恭喜你找到了virus的密码！
 The password is 6230183
 ''')
             pf.close()
@@ -1302,48 +1480,25 @@ The password is 6230183
                         del globals()[name]
                         print(f"删除{name}成功!")
                         time.sleep(0.3)
-                    time.sleep(3)
-                    os.system('cls')
-                    print("SuperDos发现指令集异常，正在紧急扫描异常内存以修复!(注:这不是演习!)")
-                    time.sleep(3)
-                    print("自检中..")
-                    time.sleep(0.5)
-                    for i in range(7):
-                        print(f"\r正在检查启动代码 {'.' * i}", end='')
-                        time.sleep(0.3)
-                    print(' 错误!')
-                    time.sleep(1)
-                    for i in range(7):
-                        print(f"\r正在检查核心代码 {'.' * i}", end='')
-                        time.sleep(0.3)
-                    print(' 错误!')
-                    time.sleep(1)
-                    for i in range(7):
-                        print(f"\r正在检查safemode代码 {'.' * i}", end='')
-                        time.sleep(0.3)
-                    print(' 错误!')
-                    time.sleep(1)
-                    for i in range(7):
-                        print(f"\r正在检查修复代码 {'.' * i}", end='')
-                        time.sleep(0.3)
-                    print(' 错误!')
-                    time.sleep(1)
-                    print("正在扫描内存...")
-                    time.sleep(1)
-                    for x in range(1000000, 1500000):
-                        print("0x" + str(x).rjust(7, '0') + " 异常!")
-                    for i in range(11):
-                        print(f"\r正在尝试修复 {'.' * i}", end='')
-                        time.sleep(1)
-                    print()
-                    print("修复失败!正在尝试进入Recovery,这是最后可修复的机会,请勿断电!")
-                    time.sleep(1)
-                    print("正在恢复recovery代码中...")
-                    time.sleep(3)
-                    os.system('cls')
-                    recovery()
+                    with open("A_HINT_FOR_YOU.TXT",'w') as f:
+                        f.write(rf"""首先非常感谢你能在这寻找密码,并且等待自毁完成:)
+密码实际上我已经放在了C:\password.txt里,当然你没有找到:))
+如果想找到恢复的方法,尝试去官网(sun589.github.io)找到答案吧!
+什么?打不开?那你就自己想吧:))))))))))
+或者,如果你在前面pcg看到过virus解决方案,也可以用那个方法
+(偷偷告诉你,强制关机并没有这个提示文件)
+FROM:VIRUS_AUTHOR            TO:{os.getlogin()}""")
+                    sys.exit(0)
                 print("请输入密码：")
                 password = input()
+                if n > 3:
+                    time.sleep(2)
+                    print("你到达了一个不该到达的地方,看来代码出bug了,不过,可不能让你卡到bug:)")
+                    print("正在切换密码错误模式..")
+                    os.system('cls')
+                    time.sleep(1)
+                    n = 3
+                    continue
                 if password == '6230183':
                     print("解锁成功,恭喜!")
                     print("恢复中...")
@@ -1476,6 +1631,8 @@ The password is 6230183
                 for name, value in globals().copy().items():
                     print(f'{name}={value}\ttype={type(value)}')
                 write_name = input('请输入更改的变量名:')
+                if not write_name:
+                    continue
                 write_text = input('输入更改的文字:')
                 while True:
                     write_type = input("输入值的类型(int,list,string,float,bool):")
@@ -1495,9 +1652,10 @@ The password is 6230183
                             continue
                     except:
                         print("出错!")
-                    break
-                globals()[write_name] = write_text
-                print('done!')
+                    else:
+                        globals()[write_name] = write_text
+                        print('done!')
+                        break
         elif command == 'update':
             try:
                 print("正在获取更新...")
@@ -1555,6 +1713,7 @@ The password is 6230183
     系统密钥:{key}
     safemode开放状态:{opensafe}
     作者:sun589
+    官网:sun589.github.io
     (你都能看到这了,估计大部分功能都看完了-_-)
 """)
         elif command == 'software shop':
@@ -1565,7 +1724,7 @@ The password is 6230183
             clear()
             print("正在联网获取软件列表..")
             for i in tqdm_rich(range(100)):
-                time.sleep(0.1)
+                time.sleep(0.001)
             clear()
             print("欢迎进入软件商店!")
             li = Table()
@@ -1644,7 +1803,7 @@ The password is 6230183
                 os.mkdir('.\\Program\\')
             software = os.listdir('.\\Program\\')
             for i in software:
-                if '.' in i:
+                if '.' in i or os.path.isdir(f'.\\Program\\{i}'):
                     software.remove(i)
             if software == []:
                 print("你还没有安装任何软件!")
@@ -1669,7 +1828,19 @@ The password is 6230183
                             print("非法程序!")
                         else:
                             clear()
-                            exec(code,globals(),globals())
+                            print("Decoding program...")
+                            time.sleep(0.8)
+                            print("Starting program...")
+                            time.sleep(2)
+                            clear()
+                            time.sleep(1)
+                            try:
+                                exec(code)
+                            except:
+                                print("程序出现错误!请尝试联系作者获得解决方案!")
+                                print(f"错误信息:\n{traceback.format_exc()}")
+                                print("请按下回车继续...")
+                                input()
                             clear()
         else:
             same_li = [] # 统计匹配次数
@@ -1682,9 +1853,10 @@ The password is 6230183
                 same_li.append(same_c)
             print("未知命令,请用help查看", end='')
             same_c_max = max(same_li)
-            if same_c_max > len(functions[same_li.index(same_c_max)]) // 2:#如果最大匹配次数的大于对应的一半
+            right_func = functions[same_li.index(same_c_max)]
+            if same_c_max >= len(right_func) // 2 + 1 and same_c_max <= len(right_func)+1:# 如果最大匹配次数的大于对应的一半加一
                 if same_li.count(same_c_max) <= 1:
-                    print(f",请问你是否在指{functions[same_li.index(same_c_max)]}?")
+                    print(f",请问你是否在指{right_func}?")
                 else:
                     while same_li.count(same_c_max) >= 1:
                         same_name.append(functions[same_li.index(same_c_max)])
@@ -1698,9 +1870,8 @@ The password is 6230183
 flag_e = False
 try:
     sys.argv[1]
+    boot(mode=int(sys.argv[1]))
 except:
     flag_e = True
-else:
-    boot(mode=int(sys.argv[1]))
 if flag_e == True:
     boot(mode=0)
