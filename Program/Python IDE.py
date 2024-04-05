@@ -1,4 +1,4 @@
-#Super_Dos_software
+# Super_Dos_software
 console = Console()
 if not os.path.isdir('.\\py'):
   os.mkdir('.\\py\\')
