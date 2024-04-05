@@ -1,4 +1,4 @@
-#Super_Dos_software
+# Super_Dos_software
 print("欢迎使用Super Anti-virus!")
 if time.time() % 35 == 0:
     print("更新最新病毒库...")
